@@ -485,35 +485,129 @@ export const getPrevChapter = async (
   novelId: number,
   chapterPosition: number,
   page: string,
-) =>
-  dbManager
+): Promise<ChapterInfo | undefined> => {
+  // First try: same page, lower position
+  const samePage = await dbManager
     .select()
     .from(chapterSchema)
     .where(
       and(
         eq(chapterSchema.novelId, novelId),
+        eq(chapterSchema.page, page),
         lt(chapterSchema.position, chapterPosition),
       ),
     )
     .orderBy(desc(chapterSchema.position))
+    .limit(1)
     .get();
+  if (samePage) {
+    return samePage;
+  }
+  // Second try: previous page (ordered by MIN(id)), last chapter
+  const pageOrder = dbManager
+    .select({
+      page: chapterSchema.page,
+      minId: sql<number>`MIN(${chapterSchema.id})`.as('min_id'),
+    })
+    .from(chapterSchema)
+    .where(eq(chapterSchema.novelId, novelId))
+    .groupBy(chapterSchema.page)
+    .as('page_order');
+
+  const prevPageRow = await dbManager
+    .select({ page: pageOrder.page })
+    .from(pageOrder)
+    .where(
+      lt(
+        pageOrder.minId,
+        sql`(SELECT MIN(${chapterSchema.id}) FROM ${chapterSchema} WHERE ${chapterSchema.novelId} = ${novelId} AND ${chapterSchema.page} = ${page})`,
+      ),
+    )
+    .orderBy(desc(pageOrder.minId))
+    .limit(1)
+    .get();
+
+  if (!prevPageRow) {
+    return undefined;
+  }
+
+  return dbManager
+    .select()
+    .from(chapterSchema)
+    .where(
+      and(
+        eq(chapterSchema.novelId, novelId),
+        eq(chapterSchema.page, prevPageRow.page!),
+      ),
+    )
+    .orderBy(desc(chapterSchema.position))
+    .limit(1)
+    .get();
+};
 
 export const getNextChapter = async (
   novelId: number,
   chapterPosition: number,
   page: string,
-) =>
-  dbManager
+): Promise<ChapterInfo | undefined> => {
+  // First try: same page, higher position
+  const samePage = await dbManager
     .select()
     .from(chapterSchema)
     .where(
       and(
         eq(chapterSchema.novelId, novelId),
+        eq(chapterSchema.page, page),
         gt(chapterSchema.position, chapterPosition),
       ),
     )
     .orderBy(asc(chapterSchema.position))
+    .limit(1)
     .get();
+  if (samePage) {
+    return samePage;
+  }
+  // Second try: next page (ordered by MIN(id)), first chapter
+  const pageOrder = dbManager
+    .select({
+      page: chapterSchema.page,
+      minId: sql<number>`MIN(${chapterSchema.id})`.as('min_id'),
+    })
+    .from(chapterSchema)
+    .where(eq(chapterSchema.novelId, novelId))
+    .groupBy(chapterSchema.page)
+    .as('page_order');
+
+  const nextPageRow = await dbManager
+    .select({ page: pageOrder.page })
+    .from(pageOrder)
+    .where(
+      gt(
+        pageOrder.minId,
+        sql`(SELECT MIN(${chapterSchema.id}) FROM ${chapterSchema} WHERE ${chapterSchema.novelId} = ${novelId} AND ${chapterSchema.page} = ${page})`,
+      ),
+    )
+    .orderBy(asc(pageOrder.minId))
+    .limit(1)
+    .get();
+
+  if (!nextPageRow) {
+    return undefined;
+  }
+
+  return dbManager
+    .select()
+    .from(chapterSchema)
+    .where(
+      and(
+        eq(chapterSchema.novelId, novelId),
+        eq(chapterSchema.page, nextPageRow.page!),
+      ),
+    )
+    .orderBy(asc(chapterSchema.position))
+    .limit(1)
+    .get();
+};
 
 const getReadDownloadedChapters = async () =>
   dbManager
