@@ -229,6 +229,15 @@ export const getCachedNovels = async (): Promise<NovelInfo[]> => {
 };
 
 export const deleteCachedNovels = async () => {
+  const cachedNovels = await getCachedNovels();
+
+  for (const novel of cachedNovels) {
+    const novelDir = `${NOVEL_STORAGE}/${novel.pluginId}/${novel.id}`;
+    if (NativeFile.exists(novelDir)) {
+      NativeFile.unlink(novelDir);
+    }
+  }
+
   await dbManager.write(async tx => {
     tx.delete(novelSchema).where(eq(novelSchema.inLibrary, false)).run();
   });
