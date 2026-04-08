@@ -120,6 +120,7 @@ const TranslateTab: React.FC = () => {
   const [providerMenuVisible, setProviderMenuVisible] = useState(false);
   const [modelPickerVisible, setModelPickerVisible] = useState(false);
   const [availableModels, setAvailableModels] = useState<string[]>([]);
+  const [isLoadingModels, setIsLoadingModels] = useState(false);
 
   const getLangLabel = (code: string) => {
     return supportedLanguagesList.find(l => l.value === code)?.label || code;
@@ -131,6 +132,7 @@ const TranslateTab: React.FC = () => {
 
   const loadModels = async () => {
     try {
+      setIsLoadingModels(true);
       const llm = new LLMTranslateEngine({
         provider: llmProvider as any,
         endpoint: llmEndpoint,
@@ -142,6 +144,8 @@ const TranslateTab: React.FC = () => {
       setModelPickerVisible(true);
     } catch(e: any) {
       showToast('Error: ' + e.message);
+    } finally {
+      setIsLoadingModels(false);
     }
   };
 
@@ -219,9 +223,12 @@ const TranslateTab: React.FC = () => {
                     key={p.value}
                     title={p.label}
                     onPress={() => {
-                        const updates: Partial<TranslateSettings> = { llmProvider: p.value as any };
-                        if (p.endpoint) {
-                           updates.llmEndpoint = p.endpoint;
+                        const updates: Partial<TranslateSettings> = { 
+                          llmProvider: p.value as any,
+                          llmApiKey: '' // clear apiKey on change
+                        };
+                        if (p.endpoint !== undefined) {
+                           updates.llmEndpoint = p.endpoint; // also applies empty string for custom
                         }
                         setTranslateSettings(updates);
                         setProviderMenuVisible(false);
@@ -230,14 +237,16 @@ const TranslateTab: React.FC = () => {
                 ))}
               </Menu>
 
-              <TextInput
-                label={getString('readerScreen.bottomSheet.translateTab.endpointUrl')}
-                value={llmEndpoint}
-                onChangeText={text => setTranslateSettings({ llmEndpoint: text })}
-                mode="outlined"
-                style={styles.input}
-                theme={{ colors: { primary: theme.primary, background: theme.surface, onSurface: theme.onSurface, onSurfaceVariant: theme.onSurfaceVariant } }}
-              />
+              {llmProvider === 'custom' && (
+                <TextInput
+                  label={getString('readerScreen.bottomSheet.translateTab.endpointUrl')}
+                  value={llmEndpoint}
+                  onChangeText={text => setTranslateSettings({ llmEndpoint: text })}
+                  mode="outlined"
+                  style={styles.input}
+                  theme={{ colors: { primary: theme.primary, background: theme.surface, onSurface: theme.onSurface, onSurfaceVariant: theme.onSurfaceVariant } }}
+                />
+              )}
               <TextInput
                 label={getString('readerScreen.bottomSheet.translateTab.apiKey')}
                 value={llmApiKey}
@@ -261,6 +270,8 @@ const TranslateTab: React.FC = () => {
                    mode="contained" 
                    onPress={loadModels}
                    style={{ marginLeft: 8 }}
+                   loading={isLoadingModels}
+                   disabled={isLoadingModels}
                 />
               </View>
 

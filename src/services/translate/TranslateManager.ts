@@ -7,6 +7,7 @@ export interface TranslateConfig {
   engine: string;
   sourceLang: string;
   targetLang: string;
+  llmProvider?: string;
   llmEndpoint?: string;
   llmApiKey?: string;
   llmModel?: string;
@@ -17,6 +18,7 @@ export class TranslateManager {
   private static getEngine(config: TranslateConfig): TranslateEngine {
     if (config.engine === 'llm') {
       return new LLMTranslateEngine({
+        provider: config.llmProvider as any,
         endpoint: config.llmEndpoint || '',
         apiKey: config.llmApiKey || '',
         model: config.llmModel || '',
