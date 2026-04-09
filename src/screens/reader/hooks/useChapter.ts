@@ -60,6 +60,7 @@ export default function useChapter(
   const [translateProgress, setTranslateProgress] = useState(0);
   const [isTranslated, setIsTranslated] = useState(false);
   const originalChapterText = useRef<string>('');
+  const chapterIdRef = useRef<number>(initialChapter.id);
 
   const [[nextChapter, prevChapter], setAdjacentChapter] = useState<
     ChapterInfo[] | undefined[]
@@ -148,8 +149,7 @@ export default function useChapter(
         // Pre-fetch adjacent page chapters if at a page boundary
         const currentPage = Number(chap.page);
         if (
-          !nextChap &&
-          novel.totalPages > 0 &&
+          !nextChap && novel.totalPages && novel.totalPages > 0 &&
           currentPage < novel.totalPages
         ) {
           const nextPage = String(currentPage + 1);
@@ -171,7 +171,7 @@ export default function useChapter(
               chap.position!,
               chap.page ?? '',
             );
-          } catch {}
+          } catch { }
         }
         if (!prevChap && currentPage > 1) {
           const prevPage = String(currentPage - 1);
@@ -193,7 +193,7 @@ export default function useChapter(
               chap.position!,
               chap.page ?? '',
             );
-          } catch {}
+          } catch { }
         }
 
         if (nextChap && !chapterTextCache.get(nextChap.id)) {
@@ -205,6 +205,13 @@ export default function useChapter(
         if (!cachedText) {
           chapterTextCache.set(chap.id, text);
         }
+
+        setIsTranslated(false);
+        setIsTranslating(false);
+        setTranslateProgress(0);
+        originalChapterText.current = '';
+        chapterIdRef.current = chap.id;
+
         setChapter(chap);
         setChapterText(
           sanitizeChapterText(
@@ -241,9 +248,9 @@ export default function useChapter(
       scrollInterval.current = setInterval(() => {
         webViewRef.current?.injectJavaScript(`(()=>{
           window.scrollBy({top:${defaultTo(
-            autoScrollOffset,
-            Dimensions.get('window').height,
-          )},behavior:'smooth'})
+          autoScrollOffset,
+          Dimensions.get('window').height,
+        )},behavior:'smooth'})
         })()`);
       }, autoScrollInterval * 1000);
     } else {
@@ -364,6 +371,8 @@ export default function useChapter(
 
     setIsTranslating(true);
     setTranslateProgress(0);
+    const translatingChapterId = chapterIdRef.current;
+
     try {
       // Save original before translating
       originalChapterText.current = chapterText;
@@ -374,12 +383,19 @@ export default function useChapter(
         settings as any,
         (progress) => setTranslateProgress(progress)
       );
-      setChapterText(translatedHtml);
-      setIsTranslated(true);
+
+      if (chapterIdRef.current === translatingChapterId) {
+        setChapterText(translatedHtml);
+        setIsTranslated(true);
+      }
     } catch (e: any) {
-      showToast(e.message);
+      if (chapterIdRef.current === translatingChapterId) {
+        showToast(e.message);
+      }
     } finally {
-      setIsTranslating(false);
+      if (chapterIdRef.current === translatingChapterId) {
+        setIsTranslating(false);
+      }
     }
   }, [chapterText, isTranslated, revertTranslation]);
 

@@ -78,7 +78,7 @@ export class LLMTranslateEngine implements TranslateEngine {
         if (Math.random() > 0.5 && progress < 96 && onProgress) {
           onProgress(progress++);
         }
-      }, 1000);
+      }, 500);
 
       let resultText = '';
 
