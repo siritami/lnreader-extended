@@ -484,7 +484,7 @@
       "translateTab": {
         "translationSettings": "Translation Settings",
         "engine": "Engine",
-        "googleFree": "Google Free",
+        "googleFree": "Google Translate",
         "llmAPI": "LLM API",
         "sourceLanguage": "Source Language",
         "targetLanguage": "Target Language",
