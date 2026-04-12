@@ -48,12 +48,18 @@ type WebViewReaderProps = {
 };
 
 const onLogMessage = (payload: { nativeEvent: { data: string } }) => {
-  const dataPayload = JSON.parse(payload.nativeEvent.data);
-  if (dataPayload) {
-    if (dataPayload.type === 'console') {
-      /* eslint-disable no-console */
-      console.info(`[Console] ${JSON.stringify(dataPayload.msg, null, 2)}`);
+  try {
+    const dataPayload = JSON.parse(payload.nativeEvent.data);
+    if (dataPayload) {
+      if (dataPayload.type === 'console') {
+        /* eslint-disable no-console */
+        console.info(`[WebView]`, dataPayload.msg);
+      } else if (dataPayload.type === 'error') {
+        console.error(`[WebView Error]`, dataPayload.msg);
+      }
     }
+  } catch {
+    // Ignore unparseable messages
   }
 };
 
@@ -410,7 +416,7 @@ const WebViewReader: React.FC<WebViewReaderProps> = ({ onPress }) => {
         }
       }}
       onMessage={(ev: { nativeEvent: { data: string } }) => {
-        __DEV__ && onLogMessage(ev);
+        onLogMessage(ev);
         const event: WebViewPostEvent = JSON.parse(ev.nativeEvent.data);
         switch (event.type) {
           case 'tts-queue': {
@@ -585,6 +591,14 @@ const WebViewReader: React.FC<WebViewReaderProps> = ({ onPress }) => {
               <div id="reader-ui"></div>
               </body>
               <script>
+                window.onerror = function(message, source, lineno, colno, error) {
+                  window.ReactNativeWebView.postMessage(JSON.stringify({
+                    type: 'error',
+                    msg: message + " at " + source + ":" + lineno + ":" + colno + (error ? "\\n" + error.stack : "")
+                  }));
+                  return true;
+                };
+
                 var initialPageReaderConfig = ${JSON.stringify({
                   nextChapterScreenVisible: nextChapterScreenVisible.current,
                 })};

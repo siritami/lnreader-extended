@@ -19,11 +19,7 @@ import Main from './src/navigators/Main';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { useInitDatabase } from '@database/db';
 import AppLockOverlay, { useAppLock } from '@screens/more/AppLockScreen';
-import DebugLogService from '@services/DebugLogService';
 import { useSecuritySettings, useLibrarySettings } from '@hooks/persisted/useSettings';
-
-// Install debug log interceptor
-DebugLogService.install();
 
 Notifications.setNotificationHandler({
   handleNotification: async () => {

@@ -102,10 +102,10 @@ const DebugLogScreen = ({ navigation }: any) => {
 
   const filterButtons: { label: string; value: FilterLevel }[] = [
     { label: 'All', value: 'all' },
-    { label: 'Log', value: 'log' },
-    { label: 'Info', value: 'info' },
-    { label: 'Warn', value: 'warn' },
-    { label: 'Error', value: 'error' },
+    { label: 'L', value: 'log' },
+    { label: 'I', value: 'info' },
+    { label: 'W', value: 'warn' },
+    { label: 'E', value: 'error' },
   ];
 
   return (

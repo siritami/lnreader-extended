@@ -3,6 +3,8 @@
  * and buffers log entries for display in the Debug Log screen.
  */
 
+import util from 'util';
+
 export type LogLevel = 'log' | 'warn' | 'error' | 'info';
 
 export interface LogEntry {
@@ -69,7 +71,7 @@ class DebugLogServiceClass {
           return arg;
         }
         try {
-          return JSON.stringify(arg, null, 2);
+          return util.inspect(arg, { showHidden: false, depth: null, customInspect: true });
         } catch {
           return String(arg);
         }

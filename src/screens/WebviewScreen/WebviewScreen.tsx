@@ -74,8 +74,16 @@ const WebviewScreen = ({ route, navigation }: WebviewScreenProps) => {
     return false;
   });
 
-  const injectJavaScriptCode =
-    'window.ReactNativeWebView.postMessage(JSON.stringify({localStorage, sessionStorage}))';
+  const injectJavaScriptCode = `
+    window.onerror = function(message, source, lineno, colno, error) {
+      window.ReactNativeWebView.postMessage(JSON.stringify({
+        type: 'webview-error',
+        msg: message + " at " + source + ":" + lineno + ":" + colno + (error ? "\\n" + error.stack : "")
+      }));
+      return true;
+    };
+    window.ReactNativeWebView.postMessage(JSON.stringify({localStorage, sessionStorage}));
+  `;
 
   return (
     <>
@@ -106,9 +114,18 @@ const WebviewScreen = ({ route, navigation }: WebviewScreenProps) => {
         injectedJavaScript={injectJavaScriptCode}
         onNavigationStateChange={handleNavigation}
         onLoadProgress={({ nativeEvent }) => setProgress(nativeEvent.progress)}
-        onMessage={({ nativeEvent }) =>
-          setTempData(JSON.parse(nativeEvent.data))
-        }
+        onMessage={({ nativeEvent }) => {
+          try {
+            const data = JSON.parse(nativeEvent.data);
+            if (data.type === 'webview-error') {
+              console.error('[WebviewScreen Error]', data.msg);
+            } else {
+              setTempData(data);
+            }
+          } catch {
+            // ignore
+          }
+        }}
         containerStyle={{ paddingBottom: bottom }}
       />
       {menuVisible ? (

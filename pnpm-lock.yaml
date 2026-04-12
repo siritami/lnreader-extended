@@ -224,6 +224,9 @@ importers:
       urlencode:
         specifier: ^2.0.0
         version: 2.0.0
+      util:
+        specifier: ^0.12.5
+        version: 0.12.5
     devDependencies:
       '@babel/core':
         specifier: ^7.29.0

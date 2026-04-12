@@ -576,7 +576,7 @@
   "debugLogScreen": {
     "title": "Nhật ký gỡ lỗi",
     "desc": "Xem nhật ký ứng dụng theo thời gian thực",
-    "copyAll": "Sao chép tất cả",
+    "copyAll": "Sao chép",
     "entries": "mục"
   },
   "backupLogScreen": {

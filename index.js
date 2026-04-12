@@ -1,3 +1,6 @@
+import DebugLogService from './src/services/DebugLogService';
+DebugLogService.install();
+
 import 'react-native-gesture-handler';
 import { registerRootComponent } from 'expo';
 import { I18nManager } from 'react-native';
