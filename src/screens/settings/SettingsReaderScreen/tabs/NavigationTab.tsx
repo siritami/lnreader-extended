@@ -47,7 +47,7 @@ const NavigationTab: React.FC = () => {
         {useVolumeButtons && (
           <View style={styles.inputContainer}>
             <TextInput
-              label={getString('readerSettings.volumeButtonsOffset')}
+              label={getString('readerSettings.volumeButtonsOffset' as any)}
               mode="outlined"
               keyboardType="numeric"
               defaultValue={defaultTo(

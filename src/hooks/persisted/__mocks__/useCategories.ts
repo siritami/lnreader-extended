@@ -1,4 +1,4 @@
-const mockCategories = [];
+const mockCategories: any[] = [];
 
 const useCategories = jest.fn(() => ({
   isLoading: false,
