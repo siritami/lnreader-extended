@@ -1,4 +1,4 @@
-import React, { createContext, useContext } from 'react';
+import React, { createContext, useContext, useMemo } from 'react';
 import {
   useLibrary,
   UseLibraryReturnType,
@@ -23,8 +23,13 @@ export function LibraryContextProvider({
   const useLibraryParams = useLibrary();
   const settings = useLibrarySettings();
 
+  const contextValue = useMemo(
+    () => ({ ...useLibraryParams, settings }),
+    [useLibraryParams, settings],
+  );
+
   return (
-    <LibraryContext.Provider value={{ ...useLibraryParams, settings }}>
+    <LibraryContext.Provider value={contextValue}>
       {children}
     </LibraryContext.Provider>
   );
