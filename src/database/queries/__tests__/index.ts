@@ -76,7 +76,7 @@ export const testModules = {
       'updateChapterProgress',
       'updateChapterProgressByIds',
       'bookmarkChapter',
-      'markPreviuschaptersRead',
+      'markPreviouschaptersRead',
       'markPreviousChaptersUnread',
       'clearUpdates',
       'getCustomPages',

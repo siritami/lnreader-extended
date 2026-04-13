@@ -21,7 +21,7 @@ jest.mock('@database/queries/ChapterQueries', () => ({
   bookmarkChapter: jest.fn(),
   markChapterRead: jest.fn(),
   markChaptersRead: jest.fn(),
-  markPreviuschaptersRead: jest.fn(),
+  markPreviouschaptersRead: jest.fn(),
   markPreviousChaptersUnread: jest.fn(),
   markChaptersUnread: jest.fn(),
   deleteChapter: jest.fn(),

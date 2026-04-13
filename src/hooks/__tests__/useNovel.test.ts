@@ -18,7 +18,7 @@ import {
   markChaptersRead as _markChaptersRead,
   markChaptersUnread as _markChaptersUnread,
   markPreviousChaptersUnread as _markPreviousChaptersUnread,
-  markPreviuschaptersRead as _markPreviuschaptersRead,
+  markPreviouschaptersRead as _markPreviouschaptersRead,
   deleteChapter as _deleteChapter,
   deleteChapters as _deleteChapters,
   bookmarkChapter as _bookmarkChapter,
@@ -352,7 +352,7 @@ describe('useNovel', () => {
 
       act(() => result.current.markPreviouschaptersRead(2));
 
-      expect(_markPreviuschaptersRead).toHaveBeenCalledWith(2, mockNovel.id);
+      expect(_markPreviouschaptersRead).toHaveBeenCalledWith(2, mockNovel.id);
       result.current.chapters
         .filter(c => c.id <= 2)
         .forEach(c => expect(c.unread).toBe(false));

@@ -11,7 +11,7 @@ import {
   markChaptersRead as _markChaptersRead,
   markChaptersUnread as _markChaptersUnread,
   markPreviousChaptersUnread as _markPreviousChaptersUnread,
-  markPreviuschaptersRead as _markPreviuschaptersRead,
+  markPreviouschaptersRead as _markPreviouschaptersRead,
   updateChapterProgress as _updateChapterProgress,
   getChapterCount,
   getCustomPages,
@@ -390,7 +390,7 @@ export const useNovel = (novelOrPath: string | NovelInfo, pluginId: string) => {
   const markPreviouschaptersRead = useCallback(
     (chapterId: number) => {
       if (novel) {
-        _markPreviuschaptersRead(chapterId, novel.id);
+        _markPreviouschaptersRead(chapterId, novel.id);
         mutateChapters(chs =>
           chs.map(chapter =>
             chapter.id <= chapterId ? { ...chapter, unread: false } : chapter,

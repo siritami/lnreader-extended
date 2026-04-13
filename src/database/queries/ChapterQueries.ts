@@ -276,7 +276,7 @@ export const bookmarkChapter = async (chapterId: number): Promise<void> => {
   });
 };
 
-export const markPreviuschaptersRead = async (
+export const markPreviouschaptersRead = async (
   chapterId: number,
   novelId: number,
 ): Promise<void> => {

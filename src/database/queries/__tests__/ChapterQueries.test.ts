@@ -39,7 +39,7 @@ import {
   deleteReadChaptersFromDb,
   updateChapterProgress,
   updateChapterProgressByIds,
-  markPreviuschaptersRead,
+  markPreviouschaptersRead,
   markPreviousChaptersUnread,
   clearUpdates,
 } from '../ChapterQueries';
@@ -479,7 +479,7 @@ describe('ChapterQueries', () => {
     });
   });
 
-  describe('markPreviuschaptersRead', () => {
+  describe('markPreviouschaptersRead', () => {
     it('should mark previous chapters as read', async () => {
       const testDb = getTestDb();
       const novelId = await insertTestNovel(testDb, { inLibrary: true });
@@ -496,7 +496,7 @@ describe('ChapterQueries', () => {
         position: 2,
       });
 
-      await markPreviuschaptersRead(chapterId2, novelId);
+      await markPreviouschaptersRead(chapterId2, novelId);
 
       const chapters = await getNovelChapters(novelId);
       const chapter1 = chapters.find(c => c.id === chapterId1);
