@@ -71,22 +71,26 @@ export default function usePlugins() {
     const installedPlugins =
       getMMKVObject<PluginItem[]>(INSTALLED_PLUGINS) || [];
     return fetchPlugins().then(fetchedPlugins => {
-      fetchedPlugins.filter(plg => {
-        const finded = installedPlugins.find(v => v.id === plg.id);
-        if (finded) {
-          if (newer(plg.version, finded.version)) {
-            finded.hasUpdate = true;
-            finded.iconUrl = plg.iconUrl;
-            finded.url = plg.url;
-            if (finded.id === lastUsedPlugin?.id) {
-              setLastUsedPlugin(finded);
-            }
+
+      // Update installed plugins with new version info (immutably)
+      const updatedInstalled = installedPlugins.map(installed => {
+        const remote = fetchedPlugins.find(p => p.id === installed.id);
+        if (remote && newer(remote.version, installed.version)) {
+          const updated = {
+            ...installed,
+            hasUpdate: true,
+            iconUrl: remote.iconUrl,
+            url: remote.url,
+          };
+          if (installed.id === lastUsedPlugin?.id) {
+            setLastUsedPlugin(updated);
           }
-          return false;
+          return updated;
         }
-        return true;
+        return installed;
       });
-      setMMKVObject(INSTALLED_PLUGINS, installedPlugins);
+
+      setMMKVObject(INSTALLED_PLUGINS, updatedInstalled);
       setMMKVObject(AVAILABLE_PLUGINS, fetchedPlugins);
       filterPlugins(languagesFilter);
     });
