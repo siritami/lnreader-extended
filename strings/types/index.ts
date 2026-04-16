@@ -505,6 +505,7 @@ export interface StringMap {
   'updatesScreen.unableToGetNovel': 'string';
   'updatesScreen.updatesLower': 'string';
   'updatesScreen.updatingLibrary': 'string';
+  'updatesScreen.alreadyUpdating': 'string';
   'onboardingScreen.welcome': 'string';
   'onboardingScreen.pickATheme': 'string';
   'onboardingScreen.light': 'string';

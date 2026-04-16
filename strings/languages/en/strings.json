@@ -607,7 +607,8 @@
     "searchbar": "Search updates",
     "unableToGetNovel": "Unable to get novel",
     "updatesLower": "updates",
-    "updatingLibrary": "Updating library"
+    "updatingLibrary": "Updating library",
+    "alreadyUpdating": "Library update is already running"
   },
   "onboardingScreen": {
     "welcome": "Welcome",

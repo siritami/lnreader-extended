@@ -607,7 +607,8 @@
     "searchbar": "Tìm kiếm bản cập nhật",
     "unableToGetNovel": "Không thể lấy được truyện",
     "updatesLower": "cập nhật",
-    "updatingLibrary": "Đang cập nhật thư viện"
+    "updatingLibrary": "Đang cập nhật thư viện",
+    "alreadyUpdating": "Đang có tác vụ cập nhật thư viện"
   },
   "onboardingScreen": {
     "welcome": "Xin chào",
