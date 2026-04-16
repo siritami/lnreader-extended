@@ -52,6 +52,27 @@ class MainApplication : Application(), ReactApplication {
     override fun onCreate() {
         super.onCreate()
 
+        val defaultHandler = Thread.getDefaultUncaughtExceptionHandler()
+        Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
+            try {
+                val cacheDir = applicationContext.externalCacheDir ?: applicationContext.cacheDir
+                val file = java.io.File(cacheDir, "crash_log.txt")
+                val date = java.util.Date()
+                val printWriter = java.io.PrintWriter(java.io.FileWriter(file))
+                printWriter.println("Date: $date")
+                printWriter.println("App Version: ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})")
+                printWriter.println("Device: ${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL}")
+                printWriter.println("Android Version: ${android.os.Build.VERSION.RELEASE} (SDK ${android.os.Build.VERSION.SDK_INT})")
+                printWriter.println("--- Stack Trace ---")
+                throwable.printStackTrace(printWriter)
+                printWriter.flush()
+                printWriter.close()
+            } catch (e: Exception) {
+                // Ignored
+            }
+            defaultHandler?.uncaughtException(thread, throwable)
+        }
+
         OkHttpClientProvider.setOkHttpClientFactory(object : OkHttpClientFactory {
             override fun createNewNetworkModuleClient(): OkHttpClient {
                 val builder = OkHttpClientProvider.createClientBuilder()

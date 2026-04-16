@@ -13,6 +13,7 @@ import * as Notifications from 'expo-notifications';
 
 import AppErrorBoundary, {
   ErrorFallback,
+  NativeCrashFallback,
 } from '@components/AppErrorBoundary/AppErrorBoundary';
 
 import Main from './src/navigators/Main';
@@ -128,16 +129,18 @@ const App = () => {
   return (
     <Suspense fallback={null}>
       <GestureHandlerRootView style={styles.flex}>
-        <AppErrorBoundary>
-          <SafeAreaProvider>
-            <PaperProvider>
-              <BottomSheetModalProvider>
-                <StatusBar translucent={true} backgroundColor="transparent" />
-                <AppContent />
-              </BottomSheetModalProvider>
-            </PaperProvider>
-          </SafeAreaProvider>
-        </AppErrorBoundary>
+        <NativeCrashFallback>
+          <AppErrorBoundary>
+            <SafeAreaProvider>
+              <PaperProvider>
+                <BottomSheetModalProvider>
+                  <StatusBar translucent={true} backgroundColor="transparent" />
+                  <AppContent />
+                </BottomSheetModalProvider>
+              </PaperProvider>
+            </SafeAreaProvider>
+          </AppErrorBoundary>
+        </NativeCrashFallback>
       </GestureHandlerRootView>
     </Suspense>
   );
