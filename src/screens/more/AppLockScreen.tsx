@@ -43,15 +43,12 @@ export const shouldLockApp = (
   isColdStart: boolean,
 ): boolean => {
   if (!appLockEnabled) {
-    console.log("App lock is disabled");
     return false;
   }
   if (lockOnBackground === 'always' || isColdStart) {
-    console.log("App lock is always enabled or cold start");
     return true;
   }
   if (lockOnBackground === 'never') {
-    console.log("App lock is never enabled.");
     return false;
   }
   const lastActive = MMKVStorage.getNumber(LAST_ACTIVE_KEY);
@@ -60,7 +57,6 @@ export const shouldLockApp = (
   }
   const elapsed = Date.now() - lastActive;
   const timeout = LOCK_TIMEOUT_MS[lockOnBackground] || 0;
-  console.log("Elapsed: ", elapsed, "Timeout: ", timeout);
   return elapsed >= timeout;
 };
 
