@@ -25,8 +25,6 @@ import okhttp3.OkHttpClient
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.dnsoverhttps.DnsOverHttps
 import java.net.InetAddress
-import android.os.Handler
-import android.os.Looper
 
 class MainApplication : Application(), ReactApplication {
     override val reactNativeHost: ReactNativeHost =
