@@ -54,7 +54,7 @@ const onLogMessage = (payload: { nativeEvent: { data: string } }) => {
     if (dataPayload) {
       if (dataPayload.type === 'console') {
         /* eslint-disable no-console */
-        console.info(`[WebView]`, dataPayload.msg);
+        console[dataPayload.method as 'log'](`[WebView]`, ...dataPayload.args);
       } else if (dataPayload.type === 'error') {
         console.error(`[WebView Error]`, dataPayload.msg);
       }

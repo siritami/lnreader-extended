@@ -9,7 +9,6 @@ window.reader = new (function () {
     prevChapter,
     batteryLevel,
     autoSaveInterval,
-    DEBUG,
     strings,
   } = initialReaderConfig;
 
@@ -110,19 +109,6 @@ window.reader = new (function () {
       });
     }
   };
-
-  if (DEBUG) {
-    // eslint-disable-next-line no-global-assign, no-new-object
-    console = new Object();
-    console.log = function (...data) {
-      reader.post({ 'type': 'console', 'msg': data?.join(' ') });
-    };
-    console.debug = console.log;
-    console.info = console.log;
-    console.warn = console.log;
-    console.error = console.log;
-  }
-  // end reader
 })();
 
 window.tts = new (function () {
@@ -574,7 +560,7 @@ window.pageReader = new (function () {
         reader.refresh();
         this.totalPages.val = parseInt(
           (reader.chapterWidth + reader.readerSettings.val.padding * 2) /
-            reader.layoutWidth,
+          reader.layoutWidth,
           10,
         );
         this.movePage(this.totalPages.val * ratio);
@@ -607,7 +593,7 @@ function calculatePages() {
   if (reader.generalSettings.val.pageReader) {
     pageReader.totalPages.val = parseInt(
       (reader.chapterWidth + reader.readerSettings.val.padding * 2) /
-        reader.layoutWidth,
+      reader.layoutWidth,
       10,
     );
 
@@ -777,17 +763,98 @@ window.addEventListener('load', () => {
         .replace(
           /<br>\s*<br>[^]+/,
           _ =>
-            `${
-              /\/p>/.test(_)
-                ? _.replace(
-                    /<br>\s*<br>(?:(?=\s*<\/?p[> ])|(?<=<\/?p\b[^>]*><br>\s*<br>))\s*/g,
-                    '',
-                  )
-                : _
+            `${/\/p>/.test(_)
+              ? _.replace(
+                /<br>\s*<br>(?:(?=\s*<\/?p[> ])|(?<=<\/?p\b[^>]*><br>\s*<br>))\s*/g,
+                '',
+              )
+              : _
             }`,
         ) //if p found, delete all double br near p
         .replace(/<br>(?:(?=\s*<\/?p[> ])|(?<=<\/?p>\s*<br>))\s*/g, '');
     }
     reader.chapterElement.innerHTML = html;
+  });
+})();
+
+(function () {
+  function formatValueToString(value) {
+    const type = typeof value;
+
+    if (type === 'number' || type === 'boolean' || value == null) {
+      return `${value}`;
+    }
+
+    if (type === 'string') {
+      return `"${value}"`;
+    }
+
+    if (type === 'symbol') {
+      const description = value.description;
+      return description == null ? 'Symbol' : `Symbol(${description})`;
+    }
+
+    if (type === 'function') {
+      const functionName = value.name;
+      return (typeof functionName === 'string' && functionName.length > 0)
+        ? `Function(${functionName})`
+        : 'Function';
+    }
+
+    if (Array.isArray(value)) {
+      const arrayElements = value.map(element => formatValueToString(element));
+      return `[${arrayElements.join(', ')}]`;
+    }
+
+    const rawObjectType = Object.prototype.toString.call(value);
+    const regexMatch = /\[object ([^\]]+)\]/.exec(rawObjectType);
+    let objectType;
+
+    if (regexMatch && regexMatch.length > 1) {
+      objectType = regexMatch[1];
+    } else {
+      return rawObjectType;
+    }
+
+    if (objectType === 'Object') {
+      try {
+        return 'Object(' + JSON.stringify(value) + ')';
+      } catch (error) {
+        return 'Object';
+      }
+    }
+
+    if (value instanceof Error) {
+      return `${value.name}: ${value.message}\n${value.stack}`;
+    }
+
+    return objectType;
+  }
+
+  const methods = ['log', 'debug', 'info', 'warn', 'error'];
+  methods.forEach(method => {
+    const originalMethod = console[method];
+    console[method] = function (...args) {
+      originalMethod.apply(console, args);
+      const safeArgs = args.map(arg => formatValueToString(arg));
+      reader.post({
+        type: 'console',
+        method: method,
+        args: safeArgs
+      });
+    };
+  });
+  window.onerror = function (message, source, lineno, colno, error) {
+    reader.post({
+      type: 'error',
+      msg: message + " at " + source + ":" + lineno + ":" + colno + (error ? "\\n" + error.stack : "")
+    });
+    return true;
+  };
+  window.addEventListener('unhandledrejection', function (event) {
+    reader.post({
+      type: 'error',
+      msg: `Unhandled Rejection: ${event.reason}`
+    });
   });
 })();
