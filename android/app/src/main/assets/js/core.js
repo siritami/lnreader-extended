@@ -665,8 +665,8 @@ window.addEventListener('load', () => {
   document.onclick = e => {
     const { clientX, clientY } = e;
     const { x, y } = {
-      x: clientX / reader.layoutWidth,
-      y: clientY / reader.layoutHeight,
+      x: clientX / window.innerWidth,
+      y: clientY / window.innerHeight,
     };
 
     if (reader.generalSettings.val.pageReader) {
@@ -684,14 +684,14 @@ window.addEventListener('load', () => {
         const position = detectTapPosition(x, y, false);
         if (position === 'top') {
           window.scrollBy({
-            top: -reader.layoutHeight * 0.75,
+            top: -window.innerHeight * 0.75,
             behavior: 'smooth',
           });
           return;
         }
         if (position === 'bottom') {
           window.scrollBy({
-            top: reader.layoutHeight * 0.75,
+            top: window.innerHeight * 0.75,
             behavior: 'smooth',
           });
           return;
@@ -715,7 +715,7 @@ window.addEventListener('load', () => {
   reader.chapterElement.addEventListener('touchmove', e => {
     if (reader.generalSettings.val.pageReader) {
       const diffX =
-        (e.changedTouches[0].screenX - this.initialX) / reader.layoutWidth;
+        (e.changedTouches[0].screenX - this.initialX) / window.innerWidth;
       reader.chapterElement.style.transition = 'unset';
       reader.chapterElement.style.transform =
         'translateX(-' + (pageReader.page.val - diffX) * 100 + '%)';
@@ -727,7 +727,7 @@ window.addEventListener('load', () => {
     const diffY = e.changedTouches[0].screenY - this.initialY;
     if (reader.generalSettings.val.pageReader) {
       reader.chapterElement.style.transition = '200ms';
-      const diffXPercentage = diffX / reader.layoutWidth;
+      const diffXPercentage = diffX / window.innerWidth;
       if (diffXPercentage < -0.3) {
         pageReader.movePage(pageReader.page.val + 1);
       } else if (diffXPercentage > 0.3) {
