@@ -98,19 +98,17 @@ class MainApplication : Application(), ReactApplication {
                     )
                     .build()
                 val builder = OkHttpClientProvider.createClientBuilder()
-                
+
                 builder.addInterceptor { chain ->
                     val response = chain.proceed(chain.request())
-                    if ((response.code == 403 || response.code == 503) && 
-                        response.header("Server", "")?.contains("cloudflare", ignoreCase = true) == true) {
-                        Thread {
-                            Thread.sleep(2000)
-                            client?.connectionPool?.evictAll()
-                        }.start()
+                    val isCloudflareBlock = (response.code == 403 || response.code == 503) && 
+                                            response.header("Server", "")?.contains("cloudflare", ignoreCase = true) == true
+                    if (isCloudflareBlock) {
+                        client?.connectionPool?.evictAll()
                     }
                     response
                 }
-                
+
                 builder.dns(dns)
                 client = builder.build()
                 return client!!
