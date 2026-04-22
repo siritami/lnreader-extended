@@ -74,9 +74,7 @@ export const useUpdates = () => {
         if (res.length) {
           if (
             !lastUpdateTimeRef.current ||
-            dayjs(lastUpdateTimeRef.current).isBefore(
-              dayjs(res[0].updateDate),
-            )
+            dayjs(lastUpdateTimeRef.current).isBefore(dayjs(res[0].updateDate))
           ) {
             setLastUpdateTime(res[0].updateDate);
           }

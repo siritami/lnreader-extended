@@ -76,14 +76,8 @@ export const ChapterContent = ({
     setBookmarked(chapter.bookmark ?? false);
   }, [chapter]);
 
-  const {
-    hidden,
-    loading,
-    error,
-    webViewRef,
-    hideHeader,
-    refetch,
-  } = useChapterContext();
+  const { hidden, loading, error, webViewRef, hideHeader, refetch } =
+    useChapterContext();
 
   const scrollToStart = () =>
     requestAnimationFrame(() => {

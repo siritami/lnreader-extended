@@ -15,7 +15,9 @@ const SetTrackChaptersDialog: React.FC<TrackChaptersDialogProps> = ({
   onUpdateChapters,
 }) => {
   const theme = useTheme();
-  const [chapters, setChapters] = useState(trackItem.progress?.toString() ?? '');
+  const [chapters, setChapters] = useState(
+    trackItem.progress?.toString() ?? '',
+  );
 
   useEffect(() => {
     if (visible) {

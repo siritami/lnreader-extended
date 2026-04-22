@@ -114,7 +114,9 @@ const AdvancedSettings = ({ navigation }: AdvancedSettingsScreenProps) => {
             value={verboseLogging}
             onPress={() => {
               setAppSettings({ verboseLogging: !verboseLogging });
-              showToast(getString('advancedSettingsScreen.restartRequiredToast'));
+              showToast(
+                getString('advancedSettingsScreen.restartRequiredToast'),
+              );
             }}
             theme={theme}
           />

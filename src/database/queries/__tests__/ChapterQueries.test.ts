@@ -714,7 +714,6 @@ describe('ChapterQueries', () => {
     });
   });
 
-
   it('should return filtered count when filter is provided', async () => {
     const testDb = getTestDb();
     const novelId = await insertTestNovel(testDb, { inLibrary: true });

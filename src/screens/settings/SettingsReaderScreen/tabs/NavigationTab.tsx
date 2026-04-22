@@ -1,7 +1,10 @@
 import React from 'react';
 import { View, StyleSheet, useWindowDimensions } from 'react-native';
 import { TextInput } from 'react-native-paper';
-import { BottomSheetScrollView, BottomSheetTextInput } from '@gorhom/bottom-sheet';
+import {
+  BottomSheetScrollView,
+  BottomSheetTextInput,
+} from '@gorhom/bottom-sheet';
 import { defaultTo } from 'lodash-es';
 import { useTheme, useChapterGeneralSettings } from '@hooks/persisted';
 import { getString } from '@strings/translations';
@@ -48,7 +51,7 @@ const NavigationTab: React.FC = () => {
         {useVolumeButtons && (
           <View style={styles.inputContainer}>
             <TextInput
-              render={props => <BottomSheetTextInput {...props as any} />}
+              render={props => <BottomSheetTextInput {...(props as any)} />}
               label={getString('readerSettings.volumeButtonsOffset')}
               mode="outlined"
               keyboardType="numeric"
@@ -132,7 +135,7 @@ const NavigationTab: React.FC = () => {
           <>
             <View style={styles.inputContainer}>
               <TextInput
-                render={props => <BottomSheetTextInput {...props as any} />}
+                render={props => <BottomSheetTextInput {...(props as any)} />}
                 label={getString('readerSettings.autoScrollInterval')}
                 mode="outlined"
                 keyboardType="numeric"
@@ -150,7 +153,7 @@ const NavigationTab: React.FC = () => {
             </View>
             <View style={styles.inputContainer}>
               <TextInput
-                render={props => <BottomSheetTextInput {...props as any} />}
+                render={props => <BottomSheetTextInput {...(props as any)} />}
                 label={getString('readerSettings.autoScrollOffset')}
                 mode="outlined"
                 keyboardType="numeric"

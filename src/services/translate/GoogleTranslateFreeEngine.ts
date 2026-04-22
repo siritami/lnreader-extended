@@ -28,7 +28,9 @@ export class GoogleTranslateFreeEngine implements TranslateEngine {
 
   private MAX_CHUNK_LENGTH = 10_000;
 
-  private chunkTexts(texts: string[]): { textArray: string[]; indices: number[] }[] {
+  private chunkTexts(
+    texts: string[],
+  ): { textArray: string[]; indices: number[] }[] {
     const chunks: { textArray: string[]; indices: number[] }[] = [];
     let currentChunkTexts: string[] = [];
     let currentIndices: number[] = [];
@@ -40,7 +42,10 @@ export class GoogleTranslateFreeEngine implements TranslateEngine {
         continue; // Skip empties during network fetch
       }
 
-      if (currentLength + text.length > this.MAX_CHUNK_LENGTH && currentChunkTexts.length > 0) {
+      if (
+        currentLength + text.length > this.MAX_CHUNK_LENGTH &&
+        currentChunkTexts.length > 0
+      ) {
         chunks.push({ textArray: currentChunkTexts, indices: currentIndices });
         currentChunkTexts = [text];
         currentIndices = [i];
@@ -79,16 +84,19 @@ export class GoogleTranslateFreeEngine implements TranslateEngine {
 
       try {
         const bodyJSON = [[chunk.textArray, source, target], 'te'];
-        const res = await fetch('https://translate-pa.googleapis.com/v1/translateHtml', {
-          method: 'POST',
-          headers: {
-            'content-type': 'application/json+protobuf',
-            'x-client-data': 'CIH/ygE=',
-            'x-goog-api-key': 'AIzaSyATBXajvzQLTDHEQbcpq0Ihe0vWDHmO520',
+        const res = await fetch(
+          'https://translate-pa.googleapis.com/v1/translateHtml',
+          {
+            method: 'POST',
+            headers: {
+              'content-type': 'application/json+protobuf',
+              'x-client-data': 'CIH/ygE=',
+              'x-goog-api-key': 'AIzaSyATBXajvzQLTDHEQbcpq0Ihe0vWDHmO520',
+            },
+            body: JSON.stringify(bodyJSON),
+            signal,
           },
-          body: JSON.stringify(bodyJSON),
-          signal,
-        });
+        );
 
         if (res.status === 429) {
           if (retryCount >= MAX_RETRIES) {
@@ -116,13 +124,14 @@ export class GoogleTranslateFreeEngine implements TranslateEngine {
           // If split perfectly aligns
           if (data[0].length === chunk.indices.length) {
             chunk.indices.forEach((originalIndex, innerIdx) => {
-              results[originalIndex] = decodeHTMLEntities(data[0][innerIdx] || '').trim();
+              results[originalIndex] = decodeHTMLEntities(
+                data[0][innerIdx] || '',
+              ).trim();
             });
           } else {
             console.warn('Google chunk mismatch length');
           }
         }
-
       } catch (e: any) {
         if (e?.name === 'AbortError') throw e;
         console.warn('Google Translate Error:', e);

@@ -422,7 +422,13 @@ export const useTranslateSettings = () => {
 
 // --- Security Settings ---
 
-export type LockOnBackground = 'always' | '1min' | '2min' | '5min' | '10min' | 'never';
+export type LockOnBackground =
+  | 'always'
+  | '1min'
+  | '2min'
+  | '5min'
+  | '10min'
+  | 'never';
 export type ScreenProtection = 'always' | 'incognito' | 'never';
 
 export interface SecuritySettings {

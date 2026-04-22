@@ -207,10 +207,7 @@ export default function useChapter(
 
           // Store in cache (limit to 1 entry)
           translatedChapterCache.current.clear();
-          translatedChapterCache.current.set(
-            targetChapter.id,
-            translatedHtml,
-          );
+          translatedChapterCache.current.set(targetChapter.id, translatedHtml);
           backgroundTranslatingChapterId.current = null;
 
           // If the user is currently viewing this chapter, apply translation
@@ -463,12 +460,15 @@ export default function useChapter(
             }
           }
           lastInteractionTime.current = Date.now();
-          autoScrollTimeout.current = setTimeout(loop, autoScrollInterval * 1000);
+          autoScrollTimeout.current = setTimeout(
+            loop,
+            autoScrollInterval * 1000,
+          );
         } else {
           autoScrollTimeout.current = setTimeout(loop, delay);
         }
       };
-      
+
       autoScrollTimeout.current = setTimeout(loop, autoScrollInterval * 1000);
     } else {
       if (autoScrollTimeout.current) clearTimeout(autoScrollTimeout.current);
@@ -478,7 +478,14 @@ export default function useChapter(
       active = false;
       if (autoScrollTimeout.current) clearTimeout(autoScrollTimeout.current);
     };
-  }, [autoScroll, autoScrollInterval, autoScrollOffset, webViewRef, hidden, isPageReaderMode]);
+  }, [
+    autoScroll,
+    autoScrollInterval,
+    autoScrollOffset,
+    webViewRef,
+    hidden,
+    isPageReaderMode,
+  ]);
 
   const updateTracker = useCallback(() => {
     const chapterNumber = parseChapterNumber(novel.name, chapter.name);

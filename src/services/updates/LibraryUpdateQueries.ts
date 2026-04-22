@@ -61,7 +61,10 @@ const updateNovelMetadata = async (
 /**
  * Update only the necessary information for a novel.
  */
-const updateNovelNecessaryInfo = async (novelId: number, novel: SourceNovel) => {
+const updateNovelNecessaryInfo = async (
+  novelId: number,
+  novel: SourceNovel,
+) => {
   const { totalPages, status } = novel;
   const data: Record<string, any> = {};
   if (totalPages) {
@@ -74,10 +77,7 @@ const updateNovelNecessaryInfo = async (novelId: number, novel: SourceNovel) => 
     return;
   }
   await dbManager.write(async tx => {
-    tx.update(novelSchema)
-      .set(data)
-      .where(eq(novelSchema.id, novelId))
-      .run();
+    tx.update(novelSchema).set(data).where(eq(novelSchema.id, novelId)).run();
   });
 };
 
@@ -162,7 +162,10 @@ const updateNovelChapters = async (
       const CHUNK_SIZE = 500;
       for (let i = 0; i < toInsert.length; i += CHUNK_SIZE) {
         const chunk = toInsert.slice(i, i + CHUNK_SIZE);
-        const newChapters = await tx.insert(chapterSchema).values(chunk).returning();
+        const newChapters = await tx
+          .insert(chapterSchema)
+          .values(chunk)
+          .returning();
 
         if (downloadNewChapters) {
           for (const newChapter of newChapters) {
@@ -189,7 +192,12 @@ const updateNovelChapters = async (
             page: chapterData.page,
             position: chapterData.position,
           })
-          .where(and(eq(chapterSchema.id, chapterData.id), eq(chapterSchema.novelId, novelId)))
+          .where(
+            and(
+              eq(chapterSchema.id, chapterData.id),
+              eq(chapterSchema.novelId, novelId),
+            ),
+          )
           .run();
       }
     }
