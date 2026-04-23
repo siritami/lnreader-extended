@@ -139,6 +139,7 @@ class LocalPlugin implements Plugin {
       status: (novel.status as NovelStatus) ?? NovelStatus.Unknown,
       genres: novel.genres ?? undefined,
       chapters: chapterItems,
+      totalPages: novel.totalPages ?? undefined,
     };
   }
 
