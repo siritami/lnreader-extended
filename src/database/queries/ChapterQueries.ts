@@ -748,7 +748,10 @@ export const getDetailedUpdatesFromDb = async (
               isNotNull(chapterSchema.dateFetch),
               sql`${chapterSchema.dateFetch} >= datetime('now', '-3 months')`,
               updateDate
-                ? eq(sql`DATE(${chapterSchema.dateFetch}, 'localtime')`, updateDate)
+                ? eq(
+                    sql`DATE(${chapterSchema.dateFetch}, 'localtime')`,
+                    updateDate,
+                  )
                 : undefined,
             ),
       ),

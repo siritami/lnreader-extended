@@ -211,19 +211,19 @@ const updateNovelChapters = async (
 
     console.log(
       `[updateNovelChapters] novelId=${novelId} page=${page ?? 'ALL'}` +
-      ` existing=${existingChapters.length} insert=${toInsert.length}` +
-      ` update=${toUpdate.length} isFirstPop=${isFirstPopulation}` +
-      ` inLibrary=${inLibrary} skip=${!!skipUpdateFlag}` +
-      ` src=${chapters.length}`,
+        ` existing=${existingChapters.length} insert=${toInsert.length}` +
+        ` update=${toUpdate.length} isFirstPop=${isFirstPopulation}` +
+        ` inLibrary=${inLibrary} skip=${!!skipUpdateFlag}` +
+        ` src=${chapters.length}`,
     );
     if (toInsert.length > 0 && existingChapters.length > 0) {
       const srcPath = chapters[0].path;
       const dbPath = existingChapters[0].path;
       console.log(
         `[updateNovelChapters] PATH MISMATCH?\n` +
-        `  DB:  "${dbPath}"\n` +
-        `  SRC: "${srcPath}"\n` +
-        `  MATCH: ${existingMap.has(srcPath)}`,
+          `  DB:  "${dbPath}"\n` +
+          `  SRC: "${srcPath}"\n` +
+          `  MATCH: ${existingMap.has(srcPath)}`,
       );
     }
 
@@ -253,9 +253,7 @@ const updateNovelChapters = async (
       } else {
         // Page is NOT provided (Base plugin, queried ALL chapters)
         // Cross-page protection: only delete within page groups that are in the source
-        const sourcePages = new Set(
-          chapters.map(c => c.page || '1'),
-        );
+        const sourcePages = new Set(chapters.map(c => c.page || '1'));
         for (const existing of existingChapters) {
           const existingPage = existing.page || '1';
           if (!sourcePages.has(existingPage)) {
@@ -432,9 +430,8 @@ const updateNovel = async (
       const numericPages = Array.from(fetchedPages)
         .map(Number)
         .filter(n => !isNaN(n));
-      const lastFetchedPage = numericPages.length > 0
-        ? Math.max(...numericPages)
-        : 1;
+      const lastFetchedPage =
+        numericPages.length > 0 ? Math.max(...numericPages) : 1;
 
       // Re-fetch the last known page to check for new chapters there
       if (lastFetchedPage > 1) {
