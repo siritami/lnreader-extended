@@ -30,7 +30,7 @@ export default function ForceResetModal({
   const [logs, setLogs] = useState<string[]>([]);
   const flatListRef = useRef<FlatList>(null);
 
-  const { refreshChapters } = useNovelContext();
+  const { refreshChapters, getNovel, setPageIndex } = useNovelContext();
 
   const isPagePlugin = (novel.totalPages ?? 0) > 1;
 
@@ -71,7 +71,14 @@ export default function ForceResetModal({
         addLog,
       );
       addLog(getString('novelScreen.forceResetModal.logSuccess'));
-      refreshChapters();
+      
+      if (reloadMetadata) {
+        await getNovel();
+      }
+      if (reloadChapters) {
+        setPageIndex(0);
+        refreshChapters();
+      }
     } catch (e: any) {
       addLog(`${getString('common.error') ?? 'Error'}: ${e.message}`);
     } finally {
