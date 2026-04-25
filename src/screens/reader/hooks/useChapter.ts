@@ -43,6 +43,7 @@ import { getString } from '@strings/translations';
 import NativeVolumeButtonListener from '@specs/NativeVolumeButtonListener';
 import NativeFile from '@specs/NativeFile';
 import { useNovelContext } from '@screens/novel/NovelContext';
+import { load } from 'cheerio';
 
 const emmiter = new NativeEventEmitter(NativeVolumeButtonListener);
 
@@ -323,9 +324,9 @@ export default function useChapter(
 
         chapterIdRef.current = chap.id;
 
-        const isOffline = awaitedText.includes(
-          'id="offline-translated-marker"',
-        );
+        // using cheerio
+        const loadedCheerio = load(awaitedText);
+        const isOffline = loadedCheerio('meta[id="offline-translated-marker"]').length > 0;
 
         if (isOffline) {
           showToast(getString('readerScreen.usingOfflineTranslation'));

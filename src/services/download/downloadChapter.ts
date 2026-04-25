@@ -19,6 +19,7 @@ import {
   TranslateSettings,
   initialTranslateSettings,
 } from '@hooks/persisted/useSettings';
+import { showToast } from '@utils/showToast';
 
 const createChapterFolder = async (
   path: string,
@@ -101,24 +102,26 @@ export const downloadChapter = async (
       initialTranslateSettings;
 
     if (translateSettings.downloadTranslated) {
-      finalHtml = await TranslateManager.translateChapterHTML(
+      try {
+        finalHtml = await TranslateManager.translateChapterHTML(
         finalHtml,
         translateSettings as any,
       );
       const loadedCheerio = cheerio.load(finalHtml, null, false);
+      const metaHTML = '<meta id="offline-translated-marker"/>';
       // Ensure body exists or prepend to whatever root cheerio has
       if (loadedCheerio('body').length > 0) {
-        loadedCheerio('body').prepend(
-          '<div id="offline-translated-marker" style="display:none;"></div>',
-        );
+        loadedCheerio('body').prepend(metaHTML);
       } else {
-        loadedCheerio
-          .root()
-          .prepend(
-            '<div id="offline-translated-marker" style="display:none;"></div>',
-          );
+        loadedCheerio.root().prepend(metaHTML);
       }
       finalHtml = loadedCheerio.html();
+      } catch (e) {
+        console.error(e);
+        showToast('Error when translating chapter ' + chapter.name);
+        // fallback to original html
+        finalHtml = chapterText;
+      }
     }
 
     await downloadFiles(finalHtml, plugin, novel.id, chapter.id);
