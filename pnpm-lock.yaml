@@ -65,6 +65,9 @@ importers:
       babel-plugin-inline-import:
         specifier: ^3.0.0
         version: 3.0.0
+      buffer:
+        specifier: ^6.0.3
+        version: 6.0.3
       cheerio:
         specifier: 1.0.0-rc.12
         version: 1.0.0-rc.12

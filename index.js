@@ -1,4 +1,3 @@
-import 'react-native-get-random-values';
 import { getMMKVObject } from './src/utils/mmkv/mmkv';
 import DebugLogService from './src/services/DebugLogService';
 
@@ -7,6 +6,7 @@ if (appSettings?.verboseLogging) {
   DebugLogService.install();
 }
 
+import 'react-native-get-random-values';
 import 'react-native-gesture-handler';
 import { registerRootComponent } from 'expo';
 import { I18nManager } from 'react-native';

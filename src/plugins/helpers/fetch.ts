@@ -41,11 +41,7 @@ const makeInit = (init?: FetchInit) => {
   return init;
 };
 
-export const fetchApi = async (
-  url: string,
-  init?: FetchInit,
-): Promise<Response> => {
-  init = makeInit(init);
+async function applyCookieFromRequest(url: string, init: FetchInit) {
   const baseURL = new URL(url).origin;
   let cookieString = '';
   if (init.headers instanceof Headers) {
@@ -58,7 +54,7 @@ export const fetchApi = async (
       cookieString = init.headers[cookieKey];
     }
   }
-  // console.log(cookieString);
+  console.log(`[${baseURL}]#headers[cookie]=`, cookieString);
   if (cookieString) {
     const cookiePairs = cookieString.split(';');
     for (const pair of cookiePairs) {
@@ -74,9 +70,15 @@ export const fetchApi = async (
       }
     }
   }
-  // if (!init.credentials) init.credentials = 'includes';
-  // Test cookie
-  // console.log(await CookieManager.get(baseURL));
+  console.log(`[${baseURL}]#CookieManager`, await CookieManager.get(baseURL));
+}
+
+export const fetchApi = async (
+  url: string,
+  init?: FetchInit,
+): Promise<Response> => {
+  init = makeInit(init);
+  // await applyCookieFromRequest(url, init);
   return await fetch(url, init);
 };
 
@@ -111,6 +113,7 @@ export const fetchText = async (
   encoding?: string,
 ): Promise<string> => {
   init = makeInit(init);
+  // await applyCookieFromRequest(url, init);
   try {
     const res = await fetch(url, init);
     if (!res.ok) {
@@ -187,6 +190,7 @@ export const fetchProto = async function (
       }),
   );
   init = await makeInit(init);
+  // await applyCookieFromRequest(url, init);
   const bodyArray = new Uint8Array(headers.length + encodedrequest.length);
   bodyArray.set(headers, 0);
   bodyArray.set(encodedrequest, headers.length);
