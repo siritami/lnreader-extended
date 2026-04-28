@@ -26,6 +26,10 @@ import { FilterTypes } from './types/filterTypes';
 import { isUrlAbsolute } from './helpers/isAbsoluteUrl';
 import { localPlugin } from './local/LocalPlugin';
 
+const getBypassCacheUrl = (url: string) => {
+  return `${url}${url.includes('?') ? '&' : '?'}t=${Date.now()}`;
+};
+
 const packages: Record<string, any> = {
   'htmlparser2': { Parser },
   'cheerio': { load },
@@ -90,7 +94,7 @@ const plugins: Record<string, Plugin | undefined> = {};
 const installPlugin = async (
   _plugin: PluginItem,
 ): Promise<Plugin | undefined> => {
-  const rawCode = await fetch(_plugin.url, {
+  const rawCode = await fetch(getBypassCacheUrl(_plugin.url), {
     headers: { 'pragma': 'no-cache', 'cache-control': 'no-cache' },
   }).then(res => res.text());
   const plugin = initPlugin(_plugin.id, rawCode);
@@ -109,12 +113,12 @@ const installPlugin = async (
     const customJSPath = pluginDir + '/custom.js';
     const customCSSPath = pluginDir + '/custom.css';
     if (_plugin.customJS) {
-      await downloadFile(_plugin.customJS, customJSPath);
+      await downloadFile(getBypassCacheUrl(_plugin.customJS), customJSPath);
     } else if (NativeFile.exists(customJSPath)) {
       NativeFile.unlink(customJSPath);
     }
     if (_plugin.customCSS) {
-      await downloadFile(_plugin.customCSS, customCSSPath);
+      await downloadFile(getBypassCacheUrl(_plugin.customCSS), customCSSPath);
     } else if (NativeFile.exists(customCSSPath)) {
       NativeFile.unlink(customCSSPath);
     }
@@ -146,7 +150,7 @@ const fetchPlugins = async (): Promise<PluginItem[]> => {
 
   const repoPluginsRes = await Promise.allSettled(
     allRepositories.map(({ url }) =>
-      fetch(url, {
+      fetch(getBypassCacheUrl(url), {
         headers: { 'pragma': 'no-cache', 'cache-control': 'no-cache' },
       }).then(res => res.json()),
     ),
