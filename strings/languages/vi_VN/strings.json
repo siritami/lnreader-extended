@@ -260,7 +260,9 @@
     "clearCookies": "Xoá cookie",
     "cookiesCleared": "Cookie đã được xoá",
     "clearData": "Xoá dữ liệu Webview",
-    "dataDeleted": "Dữ liệu Webview đã được xoá"
+    "dataDeleted": "Dữ liệu Webview đã được xoá",
+    "clearStorage": "Xóa dữ liệu cài đặt plugins",
+    "storageCleared": "Dữ liệu đã được xóa"
   },
   "date": {
     "calendar": {

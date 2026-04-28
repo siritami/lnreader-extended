@@ -30,9 +30,13 @@ const AdvancedSettings = ({ navigation }: AdvancedSettingsScreenProps) => {
   const theme = useTheme();
   const clearCookies = () => {
     CookieManager.clearAll();
-    store.clearAll();
     showToast(getString('webview.cookiesCleared'));
   };
+
+  const clearStorage = () => {
+    store.clearAll();
+    showToast(getString('webview.storageCleared'));
+  }
 
   const { userAgent, setUserAgent } = useUserAgent();
   const { verboseLogging, setAppSettings } = useAppSettings();
@@ -97,6 +101,11 @@ const AdvancedSettings = ({ navigation }: AdvancedSettingsScreenProps) => {
           <List.Item
             title={getString('webview.clearCookies')}
             onPress={clearCookies}
+            theme={theme}
+          />
+          <List.Item
+            title={getString('webview.clearStorage')}
+            onPress={clearStorage}
             theme={theme}
           />
           <List.Item

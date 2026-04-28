@@ -260,7 +260,9 @@
     "clearCookies": "Clear cookies",
     "cookiesCleared": "Cookies cleared",
     "clearData": "Clear WebView data",
-    "dataDeleted": "WebView data cleared"
+    "dataDeleted": "WebView data cleared",
+    "clearStorage": "Clear plugin settings",
+    "storageCleared": "Storage cleared"
   },
   "date": {
     "calendar": {
