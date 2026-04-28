@@ -1,3 +1,4 @@
+import 'react-native-get-random-values';
 import { getMMKVObject } from './src/utils/mmkv/mmkv';
 import DebugLogService from './src/services/DebugLogService';
 
