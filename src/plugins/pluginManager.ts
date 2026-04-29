@@ -49,6 +49,7 @@ const packages: Record<string, any> = {
     setFromResponse: CookieManager.setFromResponse,
     get: CookieManager.get,
     flush: CookieManager.flush,
+    removeSessionCookies: CookieManager.removeSessionCookies,
   },
 };
 
