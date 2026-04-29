@@ -166,22 +166,14 @@ export default function useChapter(
         // Local novels: always go through LocalPlugin.parseChapter()
         // which reads the file and rewrites file:// URIs to http://localhost
         const chapterDir = `${NOVEL_STORAGE}/local/${chapter.novelId}/${id}`;
-        await fetchChapter(novel.pluginId, chapterDir)
-          .then(res => {
-            text = res;
-          })
-          .catch(e => setError(e.message));
+        text = await fetchChapter(novel.pluginId, chapterDir);
       } else {
         // Online novels: check downloaded file first, then fetch from source
         const filePath = `${NOVEL_STORAGE}/${novel.pluginId}/${chapter.novelId}/${id}/index.html`;
         if (NativeFile.exists(filePath)) {
           text = NativeFile.readFile(filePath);
         } else {
-          await fetchChapter(novel.pluginId, path)
-            .then(res => {
-              text = res;
-            })
-            .catch(e => setError(e.message));
+          text = await fetchChapter(novel.pluginId, path);
         }
       }
       return text;
@@ -313,10 +305,11 @@ export default function useChapter(
         }
 
         if (nextChap && !chapterTextCache.get(nextChap.id)) {
-          chapterTextCache.set(
-            nextChap.id,
-            loadChapterText(nextChap.id, nextChap.path),
-          );
+          const prefetchPromise = loadChapterText(nextChap.id, nextChap.path);
+          prefetchPromise.catch(() => {
+            chapterTextCache.delete(nextChap!.id);
+          });
+          chapterTextCache.set(nextChap.id, prefetchPromise);
         }
         if (!cachedText) {
           chapterTextCache.set(chap.id, text);
@@ -380,11 +373,13 @@ export default function useChapter(
               const nextRawText =
                 chapterTextCache.get(nextChap.id) ??
                 loadChapterText(nextChap.id, nextChap.path);
-              Promise.resolve(nextRawText).then(resolvedText => {
-                if (chapterIdRef.current === chap.id) {
-                  startBackgroundTranslate(nextChap!, resolvedText);
-                }
-              });
+              Promise.resolve(nextRawText)
+                .then(resolvedText => {
+                  if (chapterIdRef.current === chap.id) {
+                    startBackgroundTranslate(nextChap!, resolvedText);
+                  }
+                })
+                .catch(() => {});
             }
           } else if (backgroundTranslatingChapterId.current === chap.id) {
             // The background is currently translating this chapter
@@ -424,11 +419,13 @@ export default function useChapter(
                   const nextRawText =
                     chapterTextCache.get(nextChap.id) ??
                     loadChapterText(nextChap.id, nextChap.path);
-                  Promise.resolve(nextRawText).then(resolvedText => {
-                    if (chapterIdRef.current === completedChapterId) {
-                      startBackgroundTranslate(nextChap!, resolvedText);
-                    }
-                  });
+                  Promise.resolve(nextRawText)
+                    .then(resolvedText => {
+                      if (chapterIdRef.current === completedChapterId) {
+                        startBackgroundTranslate(nextChap!, resolvedText);
+                      }
+                    })
+                    .catch(() => {});
                 }
               }
               onBackgroundCompleteRef.current = null;
@@ -704,11 +701,13 @@ export default function useChapter(
           const nextRawText =
             chapterTextCache.get(nextChapter.id) ??
             loadChapterText(nextChapter.id, nextChapter.path);
-          Promise.resolve(nextRawText).then(resolvedText => {
-            if (chapterIdRef.current === translatingChapterId) {
-              startBackgroundTranslate(nextChapter, resolvedText);
-            }
-          });
+          Promise.resolve(nextRawText)
+            .then(resolvedText => {
+              if (chapterIdRef.current === translatingChapterId) {
+                startBackgroundTranslate(nextChapter, resolvedText);
+              }
+            })
+            .catch(() => {});
         }
       }
     } catch (e: any) {
