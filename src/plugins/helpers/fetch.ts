@@ -41,37 +41,70 @@ const makeInit = (init?: FetchInit) => {
   return init;
 };
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-async function applyCookieFromRequest(url: string, init: FetchInit) {
+/**
+ * Sync cookies between explicit Cookie headers and CookieManager, then
+ * build the final Cookie header from CookieManager for the request.
+ *
+ * OkHttp's CookieJarContainer has no delegate when setupNetworkClient()
+ * is disabled, so fetch() never sends cookies from CookieManager.
+ * This function bridges that gap for ALL plugins.
+ */
+async function syncCookiesForRequest(url: string, init: FetchInit) {
   const baseURL = new URL(url).origin;
-  let cookieString = '';
+
+  // 1. If the caller set an explicit Cookie header, store those in
+  //    CookieManager first so they merge with existing cookies.
+  let explicit = '';
   if (init.headers instanceof Headers) {
-    cookieString = init.headers.get('Cookie') || '';
+    explicit = init.headers.get('Cookie') || '';
   } else if (init.headers) {
-    const cookieKey = Object.keys(init.headers).find(
-      k => k.toLowerCase() === 'cookie'
+    const key = Object.keys(init.headers).find(
+      k => k.toLowerCase() === 'cookie',
     );
-    if (cookieKey) {
-      cookieString = init.headers[cookieKey];
-    }
+    if (key) explicit = init.headers[key];
   }
-  console.log(`[${baseURL}]#headers[cookie]=`, cookieString);
-  if (cookieString) {
-    const cookiePairs = cookieString.split(';');
-    for (const pair of cookiePairs) {
-      const [name, ...valueParts] = pair.split('=');
-      if (name) {
-        const cookieName = name.trim();
-        const cookieValue = valueParts.join('=').trim();
-        await CookieManager.set(baseURL, {
-          name: cookieName,
-          value: cookieValue,
-          path: '/',
-        });
+  if (explicit) {
+    for (const pair of explicit.split(';')) {
+      const eq = pair.indexOf('=');
+      if (eq <= 0) continue;
+      const name = pair.substring(0, eq).trim();
+      const value = pair.substring(eq + 1).trim();
+      if (name && value) {
+        await CookieManager.set(baseURL, { name, value, path: '/' });
       }
     }
   }
-  console.log(`[${baseURL}]#CookieManager`, await CookieManager.get(baseURL));
+
+  // 2. Read ALL cookies from CookieManager and set the Cookie header.
+  const jar = await CookieManager.get(baseURL);
+  const parts: string[] = [];
+  for (const k of Object.keys(jar)) {
+    const c = jar[k];
+    const v = typeof c === 'string' ? c : c?.value;
+    if (v) parts.push(`${k}=${v}`);
+  }
+  if (parts.length > 0) {
+    const header = parts.join('; ');
+    if (init.headers instanceof Headers) {
+      init.headers.set('Cookie', header);
+    } else if (init.headers) {
+      init.headers['Cookie'] = header;
+    }
+  }
+}
+
+/**
+ * Store Set-Cookie response headers back into CookieManager.
+ */
+async function storeCookiesFromResponse(url: string, response: Response) {
+  try {
+    const setCookie = response.headers.get('set-cookie');
+    if (setCookie) {
+      await CookieManager.setFromResponse(new URL(url).origin, setCookie);
+    }
+  } catch {
+    // best-effort
+  }
 }
 
 export const fetchApi = async (
@@ -79,8 +112,10 @@ export const fetchApi = async (
   init?: FetchInit,
 ): Promise<Response> => {
   init = makeInit(init);
-  // await applyCookieFromRequest(url, init);
-  return await fetch(url, init);
+  await syncCookiesForRequest(url, init);
+  const response = await fetch(url, init);
+  await storeCookiesFromResponse(url, response);
+  return response;
 };
 
 const FILE_READER_PREFIX_LENGTH = 'data:application/octet-stream;base64,'
@@ -114,7 +149,7 @@ export const fetchText = async (
   encoding?: string,
 ): Promise<string> => {
   init = makeInit(init);
-  // await applyCookieFromRequest(url, init);
+  await syncCookiesForRequest(url, init);
   try {
     const res = await fetch(url, init);
     if (!res.ok) {
@@ -191,7 +226,7 @@ export const fetchProto = async function (
       }),
   );
   init = await makeInit(init);
-  // await applyCookieFromRequest(url, init);
+  await syncCookiesForRequest(url, init);
   const bodyArray = new Uint8Array(headers.length + encodedrequest.length);
   bodyArray.set(headers, 0);
   bodyArray.set(encodedrequest, headers.length);
