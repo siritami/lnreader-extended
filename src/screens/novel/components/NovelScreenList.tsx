@@ -146,6 +146,12 @@ const NovelScreenList = ({
     [selected],
   );
   const isSelectionMode = selected.length > 0;
+  
+  // Refs for stable callbacks
+  const chaptersRef = useRef(chapters);
+  const isSelectionModeRef = useRef(isSelectionMode);
+  chaptersRef.current = chapters;
+  isSelectionModeRef.current = isSelectionMode;
 
   const onPageScroll = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -186,7 +192,7 @@ const NovelScreenList = ({
 
   const onSelectPress = useCallback(
     (chapter: ChapterInfo) => {
-      if (!isSelectionMode) {
+      if (!isSelectionModeRef.current) {
         navigateToChapter(chapter);
       } else {
         setSelected(sel =>
@@ -196,7 +202,7 @@ const NovelScreenList = ({
         );
       }
     },
-    [isSelectionMode, navigateToChapter, setSelected],
+    [navigateToChapter, setSelected],
   );
 
   const onSelectLongPress = useCallback(
@@ -208,7 +214,9 @@ const NovelScreenList = ({
           }
           return [...sel, chapter];
         }
-        if (sel.length === chapters.length) {
+        
+        const currentChapters = chaptersRef.current;
+        if (sel.length === currentChapters.length) {
           return sel;
         }
 
@@ -221,7 +229,7 @@ const NovelScreenList = ({
           return [
             ...sel,
             chapter,
-            ...chapters.filter(
+            ...currentChapters.filter(
               (chap: ChapterInfo) =>
                 (chap.id <= chapter.id || chap.id >= lastSelectedChapter.id) ===
                 false,
@@ -231,7 +239,7 @@ const NovelScreenList = ({
         return [
           ...sel,
           chapter,
-          ...chapters.filter(
+          ...currentChapters.filter(
             (chap: ChapterInfo) =>
               (chap.id >= chapter.id || chap.id <= lastSelectedChapter.id) ===
               false,
@@ -239,7 +247,7 @@ const NovelScreenList = ({
         ];
       });
     },
-    [chapters, disableHapticFeedback, setSelected],
+    [disableHapticFeedback, setSelected],
   );
 
   const handleDeleteChapter = useCallback(
@@ -573,7 +581,7 @@ const NovelScreenList = ({
         onEndReachedThreshold={6}
         onScroll={onPageScroll}
         scrollEventThrottle={16}
-        drawDistance={1000}
+        drawDistance={250}
         ListHeaderComponent={listHeader}
       />
       {novel.id !== 'NO_ID' ? (

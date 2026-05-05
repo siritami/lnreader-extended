@@ -192,7 +192,10 @@ const ChapterItem: React.FC<ChapterItemProps> = ({
   isBookmarked ??= bookmark ?? false;
 
   // Swipe is disabled when toggle handlers are not provided (e.g. UpdateNovelCard)
-  const swipeEnabled = !!(onToggleRead && onToggleBookmark);
+  // or when the user has disabled both swipe actions in settings.
+  const swipeEnabled =
+    !!(onToggleRead && onToggleBookmark) &&
+    (swipeActionLeft !== 'disabled' || swipeActionRight !== 'disabled');
 
   // ── Callbacks ──────────────────────────────────────────────────────────
   const handlePress = useCallback(
