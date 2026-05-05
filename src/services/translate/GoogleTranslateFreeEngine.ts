@@ -1,24 +1,7 @@
+import { decode } from 'html-entities';
 import { TranslateEngine } from './TranslateEngine';
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-
-function decodeHTMLEntities(str: string) {
-  const entities = {
-    '&amp;': '&',
-    '&lt;': '<',
-    '&gt;': '>',
-    '&quot;': '"',
-    '&#39;': "'",
-    '&#x2F;': '/',
-    '&#x60;': '`',
-    '&#x3D;': '=',
-  };
-
-  return str.replace(
-    /&amp;|&lt;|&gt;|&quot;|&#39;|&#x2F;|&#x60;|&#x3D;/g,
-    match => entities[match as keyof typeof entities],
-  );
-}
 
 export class GoogleTranslateFreeEngine implements TranslateEngine {
   id = 'google-free';
@@ -121,7 +104,7 @@ export class GoogleTranslateFreeEngine implements TranslateEngine {
         // If split perfectly aligns
         if (data[0].length === chunk.indices.length) {
           chunk.indices.forEach((originalIndex, innerIdx) => {
-            results[originalIndex] = decodeHTMLEntities(
+            results[originalIndex] = decode(
               data[0][innerIdx] || '',
             ).trim();
           });
