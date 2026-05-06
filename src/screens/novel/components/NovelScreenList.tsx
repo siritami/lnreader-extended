@@ -146,7 +146,7 @@ const NovelScreenList = ({
     [selected],
   );
   const isSelectionMode = selected.length > 0;
-  
+
   // Refs for stable callbacks
   const chaptersRef = useRef(chapters);
   const isSelectionModeRef = useRef(isSelectionMode);
@@ -214,7 +214,7 @@ const NovelScreenList = ({
           }
           return [...sel, chapter];
         }
-        
+
         const currentChapters = chaptersRef.current;
         if (sel.length === currentChapters.length) {
           return sel;

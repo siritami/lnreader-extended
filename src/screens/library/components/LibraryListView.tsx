@@ -148,4 +148,3 @@ export const LibraryView: React.FC<Props> = React.memo(
 const styles = StyleSheet.create({
   flex: { flex: 1 },
 });
-

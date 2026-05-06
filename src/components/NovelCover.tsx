@@ -1,5 +1,12 @@
 import React, { memo, useMemo } from 'react';
-import { StyleSheet, View, Text, Pressable, useWindowDimensions, Image } from 'react-native';
+import {
+  StyleSheet,
+  View,
+  Text,
+  Pressable,
+  useWindowDimensions,
+  Image,
+} from 'react-native';
 
 import { LinearGradient } from 'expo-linear-gradient';
 import ListView from './ListView';
@@ -155,8 +162,10 @@ function NovelCover<
   const coverWidth = coverWidthProp ?? fallback.coverWidth;
   const displayMode =
     displayModeProp ?? fallback.displayMode ?? DisplayModes.Comfortable;
-  const showDownloadBadges = showDownloadBadgesProp ?? fallback.showDownloadBadges ?? true;
-  const showUnreadBadges = showUnreadBadgesProp ?? fallback.showUnreadBadges ?? true;
+  const showDownloadBadges =
+    showDownloadBadgesProp ?? fallback.showDownloadBadges ?? true;
+  const showUnreadBadges =
+    showUnreadBadgesProp ?? fallback.showUnreadBadges ?? true;
 
   const selectNovel = () => onLongPress(item);
 

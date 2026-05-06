@@ -1,11 +1,5 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
-import {
-  View,
-  StyleSheet,
-  Text,
-  ScrollView,
-  Pressable,
-} from 'react-native';
+import { View, StyleSheet, Text, ScrollView, Pressable } from 'react-native';
 import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import Slider from '@react-native-community/slider';
 import { getAvailableVoicesAsync, Voice } from 'expo-speech';
