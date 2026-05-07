@@ -33,6 +33,7 @@ import {
 } from '@hooks/persisted/useSettings';
 import { getBatteryLevelSync } from 'react-native-device-info';
 import * as Speech from 'expo-speech';
+import * as ScreenOrientation from 'expo-screen-orientation';
 import { PLUGIN_STORAGE } from '@utils/Storages';
 import { useChapterContext } from '../ChapterContext';
 import {
@@ -256,6 +257,7 @@ const WebViewReader: React.FC<WebViewReaderProps> = ({ onPress }) => {
   useEffect(() => {
     return () => {
       dismissTTSNotification();
+      ScreenOrientation.unlockAsync();
     };
   }, []);
 
@@ -549,6 +551,14 @@ const WebViewReader: React.FC<WebViewReaderProps> = ({ onPress }) => {
               }
             }
             break;
+          case 'video-fullscreen-enter':
+            ScreenOrientation.lockAsync(
+              ScreenOrientation.OrientationLock.LANDSCAPE,
+            );
+            break;
+          case 'video-fullscreen-exit':
+            ScreenOrientation.unlockAsync();
+            break;
         }
       }}
       source={{
@@ -670,6 +680,7 @@ const WebViewReader: React.FC<WebViewReaderProps> = ({ onPress }) => {
               <script src="${assetsUriPrefix}/js/text-vibe.js"></script>
               <script src="${assetsUriPrefix}/js/core.js"></script>
               <script src="${assetsUriPrefix}/js/index.js"></script>
+              <script src="${assetsUriPrefix}/js/videoFullscreen.js"></script>
               <script src="${pluginCustomJS}"></script>
               <script>
                 ${readerSettings.customJS}
