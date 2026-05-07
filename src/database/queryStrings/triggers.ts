@@ -43,3 +43,18 @@ export const createCategoryTriggerQuery = `
     UPDATE Category SET sort = (SELECT IFNULL(sort, new.id)) WHERE id = new.id;
   END;
 `;
+
+export const dropNovelTriggerQueryInsert = 'DROP TRIGGER IF EXISTS update_novel_stats;';
+export const dropNovelTriggerQueryUpdate = 'DROP TRIGGER IF EXISTS update_novel_stats_on_update;';
+export const dropNovelTriggerQueryDelete = 'DROP TRIGGER IF EXISTS update_novel_stats_on_delete;';
+export const dropCategoryTriggerQuery = 'DROP TRIGGER IF EXISTS add_category;';
+
+export const refreshAllNovelsStatsQuery = `
+    UPDATE Novel
+    SET 
+        totalChapters = (SELECT COUNT(*) FROM Chapter WHERE Chapter.novelId = Novel.id),
+        chaptersDownloaded = (SELECT COUNT(*) FROM Chapter WHERE Chapter.novelId = Novel.id AND Chapter.isDownloaded = 1),
+        chaptersUnread = (SELECT COUNT(*) FROM Chapter WHERE Chapter.novelId = Novel.id AND Chapter.unread = 1),
+        lastUpdatedAt = (SELECT MAX(updatedTime) FROM Chapter WHERE Chapter.novelId = Novel.id)
+    WHERE inLibrary = 1;
+`;

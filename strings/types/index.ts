@@ -100,6 +100,7 @@ export interface StringMap {
   'backupScreen.novelRestoreFailed': 'string';
   'backupScreen.novelDirectoryNotFound': 'string';
   'backupScreen.novelDirectoryReadFailed': 'string';
+  'backupScreen.finishingRestore': 'string';
   'backupScreen.restoringCategories': 'string';
   'backupScreen.restoringNovels': 'string';
   'backupScreen.restoringSettings': 'string';

@@ -107,6 +107,7 @@
     "novelRestoreFailed": "Khôi phục truyện thất bại: %{novelName} - %{error}",
     "novelDirectoryNotFound": "Không tìm thấy thư mục truyện trong bản sao lưu",
     "novelDirectoryReadFailed": "Không đọc được thư mục truyện: %{error}",
+    "finishingRestore": "Đang hoàn tất khôi phục...",
     "restoringCategories": "Đang khôi phục danh mục",
     "restoringNovels": "Đang khôi phục truyện",
     "restoringSettings": "Đang khôi phục cài đặt",

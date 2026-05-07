@@ -107,6 +107,7 @@
     "novelRestoreFailed": "Failed to restore novel: %{novelName} - %{error}",
     "novelDirectoryNotFound": "Novel directory not found in backup",
     "novelDirectoryReadFailed": "Failed to read novel directory: %{error}",
+    "finishingRestore": "Finishing restore...",
     "restoringCategories": "Restoring Categories",
     "restoringNovels": "Restoring Novels",
     "restoringSettings": "Restoring Settings",

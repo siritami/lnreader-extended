@@ -17,6 +17,12 @@ import {
   createNovelTriggerQueryInsert,
   createNovelTriggerQueryUpdate,
 } from './queryStrings/triggers';
+import {
+  dropCategoryTriggerQuery,
+  dropNovelTriggerQueryDelete,
+  dropNovelTriggerQueryInsert,
+  dropNovelTriggerQueryUpdate,
+} from './queryStrings/triggers';
 import { useEffect, useReducer } from 'react';
 
 class MyLogger implements Logger {
@@ -70,17 +76,25 @@ const populateDatabase = (executor: SqlExecutor) => {
   executor.executeSync(createDefaultRepositoryQuery);
 };
 
-const createDbTriggers = (executor: SqlExecutor) => {
-  console.log('Creating database triggers');
-  executor.executeSync(createCategoryTriggerQuery);
-  executor.executeSync(createNovelTriggerQueryDelete);
-  executor.executeSync(createNovelTriggerQueryInsert);
-  executor.executeSync(createNovelTriggerQueryUpdate);
-};
-
 export const runDatabaseBootstrap = (executor: SqlExecutor) => {
   createDbTriggers(executor);
   populateDatabase(executor);
+};
+
+export const dropDbTriggers = (executor: SqlExecutor) => {
+  console.log('Dropping database triggers');
+  executor.executeSync(dropNovelTriggerQueryInsert);
+  executor.executeSync(dropNovelTriggerQueryUpdate);
+  executor.executeSync(dropNovelTriggerQueryDelete);
+  executor.executeSync(dropCategoryTriggerQuery);
+};
+
+export const createDbTriggers = (executor: SqlExecutor) => {
+  console.log('Creating database triggers');
+  executor.executeSync(createNovelTriggerQueryInsert);
+  executor.executeSync(createNovelTriggerQueryUpdate);
+  executor.executeSync(createNovelTriggerQueryDelete);
+  executor.executeSync(createCategoryTriggerQuery);
 };
 
 type InitDbState = {

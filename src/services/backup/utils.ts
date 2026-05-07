@@ -13,6 +13,7 @@ import {
 import { getNovelChapters } from '@database/queries/ChapterQueries';
 import {
   _restoreCategory,
+  assignOrphanedNovelsToDefaultCategory,
   getAllNovelCategories,
   getCategoriesFromDb,
 } from '@database/queries/CategoryQueries';
@@ -23,6 +24,11 @@ import ServiceManager from '@services/ServiceManager';
 import NativeFile from '@specs/NativeFile';
 import { showToast } from '@utils/showToast';
 import { getString } from '@strings/translations';
+import DebugLogService from '@services/DebugLogService';
+import { db, dropDbTriggers, createDbTriggers } from '@database/db';
+import { refreshAllNovelsStatsQuery } from '@database/queryStrings/triggers';
+
+const BTAG = "[Backup]"
 
 const APP_STORAGE_URI = 'file://' + ROOT_STORAGE;
 
@@ -70,6 +76,7 @@ export const prepareBackupData = async (cacheDirPath: string) => {
 
   // version
   try {
+    DebugLogService.addEntry('log', `${BTAG} Writing version info...`);
     NativeFile.writeFile(
       cacheDirPath + '/' + BackupEntryName.VERSION,
       JSON.stringify({ version: version }),
@@ -84,10 +91,14 @@ export const prepareBackupData = async (cacheDirPath: string) => {
   }
 
   // novels
+  DebugLogService.addEntry('log', `${BTAG} Backing up novels...`);
   await getAllNovels().then(async novels => {
-    for (const novel of novels) {
+    DebugLogService.addEntry('log', `${BTAG} Found ${novels.length} novels to backup`);
+    for (let i_ = 0; i_ < novels.length; i_++) {
+      const novel = novels[i_];
       try {
         const chapters = await getNovelChapters(novel.id);
+        DebugLogService.addEntry('log', `${BTAG} [${i_+1}/${novels.length}] Processing novel: ${novel.name} (${chapters.length} chapters)`);
         NativeFile.writeFile(
           novelDirPath + '/' + novel.id + '.json',
           JSON.stringify({
@@ -109,8 +120,10 @@ export const prepareBackupData = async (cacheDirPath: string) => {
 
   // categories
   try {
+    DebugLogService.addEntry('log', `${BTAG} Backing up categories...`);
     const categories = await getCategoriesFromDb();
     const novelCategories = await getAllNovelCategories();
+    DebugLogService.addEntry('log', `${BTAG} Found ${categories.length} categories`);
     NativeFile.writeFile(
       cacheDirPath + '/' + BackupEntryName.CATEGORY,
       JSON.stringify(
@@ -134,6 +147,7 @@ export const prepareBackupData = async (cacheDirPath: string) => {
 
   // settings
   try {
+    DebugLogService.addEntry('log', `${BTAG} Backing up settings...`);
     NativeFile.writeFile(
       cacheDirPath + '/' + BackupEntryName.SETTING,
       JSON.stringify(backupMMKVData()),
@@ -150,131 +164,155 @@ export const prepareBackupData = async (cacheDirPath: string) => {
 export const restoreData = async (cacheDirPath: string) => {
   const novelDirPath = cacheDirPath + '/' + BackupEntryName.NOVEL_AND_CHAPTERS;
 
-  // version
-  // nothing to do
+  try {
+    // 1. Disable triggers to speed up insertion
+    dropDbTriggers(db);
 
-  // novels
-  showToast(getString('backupScreen.restoringNovels'));
-  let novelCount = 0;
-  let failedCount = 0;
+    // version
+    // nothing to do
 
-  if (!NativeFile.exists(novelDirPath)) {
-    showToast(getString('backupScreen.novelDirectoryNotFound'));
-  } else {
-    try {
-      const items = NativeFile.readDir(novelDirPath);
-      for (const item of items) {
-        if (!item.isDirectory) {
-          try {
-            const fileContent = NativeFile.readFile(item.path);
-            const backupNovel = JSON.parse(fileContent) as BackupNovel;
+    // novels
+    showToast(getString('backupScreen.restoringNovels'));
+    let novelCount = 0;
+    let failedCount = 0;
 
-            if (!backupNovel.cover?.startsWith('http')) {
-              backupNovel.cover = APP_STORAGE_URI + backupNovel.cover;
+    if (!NativeFile.exists(novelDirPath)) {
+      showToast(getString('backupScreen.novelDirectoryNotFound'));
+    } else {
+      try {
+        const items = NativeFile.readDir(novelDirPath);
+        DebugLogService.addEntry('log', `${BTAG} Found ${items.length} novels to restore`);
+        for (let i_ = 0; i_ < items.length; i_++) {
+          const item = items[i_];
+          if (!item.isDirectory) {
+            try {
+              const fileContent = NativeFile.readFile(item.path);
+              const backupNovel = JSON.parse(fileContent) as BackupNovel;
+              DebugLogService.addEntry('log', `${BTAG} [${i_+1}/${items.length}] Processing novel: ${backupNovel.name} (${backupNovel.chapters.length} chapters)`);
+
+              if (!backupNovel.cover?.startsWith('http')) {
+                backupNovel.cover = APP_STORAGE_URI + backupNovel.cover;
+              }
+
+              await _restoreNovelAndChapters(backupNovel);
+              novelCount++;
+            } catch (error: any) {
+              failedCount++;
+              const novelName =
+                item.path.split('/').pop()?.replace('.json', '') || 'Unknown';
+              showToast(
+                getString('backupScreen.novelRestoreFailed', {
+                  novelName: novelName,
+                  error: error?.message || String(error),
+                }),
+              );
             }
+          }
+        }
+      } catch (error: any) {
+        showToast(
+          getString('backupScreen.novelDirectoryReadFailed', {
+            error: error?.message || String(error),
+          }),
+        );
+      }
+    }
+    if (failedCount > 0) {
+      showToast(
+        getString('backupScreen.novelsRestoredWithErrors', {
+          count: novelCount,
+          failedCount: failedCount,
+        }),
+      );
+    } else {
+      showToast(getString('backupScreen.novelsRestored', { count: novelCount }));
+    }
 
-            await _restoreNovelAndChapters(backupNovel);
-            novelCount++;
+    // categories
+    showToast(getString('backupScreen.restoringCategories'));
+    const categoryFilePath = cacheDirPath + '/' + BackupEntryName.CATEGORY;
+    let categoryCount = 0;
+    let failedCategoryCount = 0;
+
+    if (!NativeFile.exists(categoryFilePath)) {
+      showToast(getString('backupScreen.categoryFileNotFound'));
+    } else {
+      try {
+        const fileContent = NativeFile.readFile(categoryFilePath);
+        const categories: BackupCategory[] = JSON.parse(fileContent);
+        DebugLogService.addEntry('log', `${BTAG} Found ${categories.length} categories to restore`);
+
+        for (const category of categories) {
+          try {
+            DebugLogService.addEntry('log', `${BTAG} Restoring category: ${category.name} (${category.id})`);
+            await _restoreCategory(category);
+            categoryCount++;
           } catch (error: any) {
-            failedCount++;
-            const novelName =
-              item.path.split('/').pop()?.replace('.json', '') || 'Unknown';
+            failedCategoryCount++;
             showToast(
-              getString('backupScreen.novelRestoreFailed', {
-                novelName: novelName,
+              getString('backupScreen.categoryRestoreFailed', {
+                categoryName: category.name || category.id.toString(),
                 error: error?.message || String(error),
               }),
             );
           }
         }
+      } catch (error: any) {
+        showToast(
+          getString('backupScreen.categoryFileReadFailed', {
+            error: error?.message || String(error),
+          }),
+        );
       }
-    } catch (error: any) {
+    }
+    if (failedCategoryCount > 0) {
       showToast(
-        getString('backupScreen.novelDirectoryReadFailed', {
-          error: error?.message || String(error),
+        getString('backupScreen.categoriesRestoredWithErrors', {
+          count: categoryCount,
+          failedCount: failedCategoryCount,
+        }),
+      );
+    } else {
+      showToast(
+        getString('backupScreen.categoriesRestored', {
+          count: categoryCount,
         }),
       );
     }
-  }
-  if (failedCount > 0) {
-    showToast(
-      getString('backupScreen.novelsRestoredWithErrors', {
-        count: novelCount,
-        failedCount: failedCount,
-      }),
-    );
-  } else {
-    showToast(getString('backupScreen.novelsRestored', { count: novelCount }));
-  }
 
-  // categories
-  showToast(getString('backupScreen.restoringCategories'));
-  const categoryFilePath = cacheDirPath + '/' + BackupEntryName.CATEGORY;
-  let categoryCount = 0;
-  let failedCategoryCount = 0;
+    // settings
+    showToast(getString('backupScreen.restoringSettings'));
+    const settingsFilePath = cacheDirPath + '/' + BackupEntryName.SETTING;
 
-  if (!NativeFile.exists(categoryFilePath)) {
-    showToast(getString('backupScreen.categoryFileNotFound'));
-  } else {
-    try {
-      const fileContent = NativeFile.readFile(categoryFilePath);
-      const categories: BackupCategory[] = JSON.parse(fileContent);
-
-      for (const category of categories) {
-        try {
-          _restoreCategory(category);
-          categoryCount++;
-        } catch (error: any) {
-          failedCategoryCount++;
-          showToast(
-            getString('backupScreen.categoryRestoreFailed', {
-              categoryName: category.name || category.id.toString(),
-              error: error?.message || String(error),
-            }),
-          );
-        }
+    if (!NativeFile.exists(settingsFilePath)) {
+      showToast(getString('backupScreen.settingsFileNotFound'));
+    } else {
+      try {
+        const fileContent = NativeFile.readFile(settingsFilePath);
+        const settingsData = JSON.parse(fileContent);
+        restoreMMKVData(settingsData);
+        showToast(getString('backupScreen.settingsRestored'));
+      } catch (error: any) {
+        showToast(
+          getString('backupScreen.settingsRestoreFailed', {
+            error: error?.message || String(error),
+          }),
+        );
       }
-    } catch (error: any) {
-      showToast(
-        getString('backupScreen.categoryFileReadFailed', {
-          error: error?.message || String(error),
-        }),
-      );
     }
-  }
-  if (failedCategoryCount > 0) {
-    showToast(
-      getString('backupScreen.categoriesRestoredWithErrors', {
-        count: categoryCount,
-        failedCount: failedCategoryCount,
-      }),
-    );
-  } else {
-    showToast(
-      getString('backupScreen.categoriesRestored', {
-        count: categoryCount,
-      }),
-    );
-  }
 
-  // settings
-  showToast(getString('backupScreen.restoringSettings'));
-  const settingsFilePath = cacheDirPath + '/' + BackupEntryName.SETTING;
+    // 2. Refresh stats for all novels in bulk
+    showToast(getString('backupScreen.finishingRestore'));
+    DebugLogService.addEntry('log', `${BTAG} Refreshing all novel stats`);
+    db.executeSync(refreshAllNovelsStatsQuery);
 
-  if (!NativeFile.exists(settingsFilePath)) {
-    showToast(getString('backupScreen.settingsFileNotFound'));
-  } else {
-    try {
-      const fileContent = NativeFile.readFile(settingsFilePath);
-      const settingsData = JSON.parse(fileContent);
-      restoreMMKVData(settingsData);
-      showToast(getString('backupScreen.settingsRestored'));
-    } catch (error: any) {
-      showToast(
-        getString('backupScreen.settingsRestoreFailed', {
-          error: error?.message || String(error),
-        }),
-      );
-    }
+    // 3. Assign orphaned novels to default category
+    DebugLogService.addEntry('log', `${BTAG} Assigning orphaned novels`);
+    await assignOrphanedNovelsToDefaultCategory();
+  } catch (e: any) {
+    DebugLogService.addEntry('error', `${BTAG} Error during restoreData: ${e.message}`);
+  } finally {
+    // 4. Always re-enable triggers
+    createDbTriggers(db);
   }
 };

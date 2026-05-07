@@ -531,18 +531,18 @@ export const _restoreNovelAndChapters = async (backupNovel: BackupNovel) => {
   const { chapters, ...novel } = backupNovel;
   await dbManager.write(async tx => {
     // Delete existing novel data
-    tx.delete(novelSchema).where(eq(novelSchema.id, novel.id)).run();
-    tx.delete(chapterSchema).where(eq(chapterSchema.novelId, novel.id)).run();
+    await tx.delete(novelSchema).where(eq(novelSchema.id, novel.id)).run();
+    await tx.delete(chapterSchema).where(eq(chapterSchema.novelId, novel.id)).run();
 
     // Restore novel
-    tx.insert(novelSchema).values(novel).run();
+    await tx.insert(novelSchema).values(novel).run();
 
     // Restore chapters in batches
     if (chapters.length > 0) {
       const BATCH_SIZE = 100;
       for (let i = 0; i < chapters.length; i += BATCH_SIZE) {
         const batch = chapters.slice(i, i + BATCH_SIZE);
-        tx.insert(chapterSchema).values(batch).run();
+        await tx.insert(chapterSchema).values(batch).run();
       }
     }
   });

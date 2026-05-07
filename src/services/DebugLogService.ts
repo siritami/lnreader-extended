@@ -19,7 +19,7 @@ type LogSubscriber = (entries: LogEntry[]) => void;
 const MAX_ENTRIES = 200;
 const NOTIFY_DEBOUNCE_MS = 100;
 
-class DebugLogServiceClass {
+export class DebugLogServiceClass {
   /** Ring buffer: fixed-size array, overwritten circularly */
   private buffer: (LogEntry | null)[] = new Array(MAX_ENTRIES).fill(null);
   /** Next write position in the ring buffer */

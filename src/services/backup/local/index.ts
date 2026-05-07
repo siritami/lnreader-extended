@@ -158,6 +158,7 @@ export const restoreBackup = async (
       NativeFile.unlink(CACHE_DIR_PATH);
     }
 
+    DebugLogService.addEntry('log', `${BTAG} Copying backup file...`);
     const [localRes] = await keepLocalCopy({
       files: [
         {
@@ -167,6 +168,7 @@ export const restoreBackup = async (
       ],
       destination: 'cachesDirectory',
     });
+
     if (localRes.status === 'error') {
       throw new Error(localRes.copyError);
     }
