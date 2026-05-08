@@ -49,7 +49,6 @@ import NativeVolumeButtonListener from '@specs/NativeVolumeButtonListener';
 import NativeFile from '@specs/NativeFile';
 import { useNovelContext } from '@screens/novel/NovelContext';
 import { load } from 'cheerio';
-import { NativeModule } from 'react-native';
 
 const { TikTokTTS } = NativeModules;
 
