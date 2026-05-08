@@ -45,6 +45,7 @@ import {
   ttsMediaEmitter,
 } from '@utils/ttsNotification';
 import { addReadDuration } from '@database/queries/ChapterQueries';
+import { showToast } from '@utils/showToast';
 
 type WebViewPostEvent = {
   type: string;
@@ -73,8 +74,9 @@ const onLogMessage = (payload: { nativeEvent: { data: string } }) => {
   }
 };
 
-const { RNDeviceInfo } = NativeModules;
+const { RNDeviceInfo, TikTokTTS } = NativeModules;
 const deviceInfoEmitter = new NativeEventEmitter(RNDeviceInfo);
+const tiktokTTSEmitter = new NativeEventEmitter(TikTokTTS);
 
 const assetsUriPrefix = __DEV__
   ? 'http://localhost:8081/assets'
@@ -273,6 +275,7 @@ const WebViewReader: React.FC<WebViewReaderProps> = ({ onPress }) => {
 
           // Stop any currently playing speech
           Speech.stop();
+          TikTokTTS?.stop();
 
           // Update WebView settings
           webViewRef.current?.injectJavaScript(
@@ -359,6 +362,7 @@ const WebViewReader: React.FC<WebViewReaderProps> = ({ onPress }) => {
         // Stop TTS on background to prevent sync issues
         if (isTTSReadingRef.current) {
           Speech.stop();
+          TikTokTTS?.stop();
           isTTSReadingRef.current = false;
           ttsQueueRef.current = [];
           ttsQueueIndexRef.current = 0;
@@ -373,14 +377,21 @@ const WebViewReader: React.FC<WebViewReaderProps> = ({ onPress }) => {
     return () => subscription.remove();
   }, [webViewRef, startReadTimer, pauseReadTimer]);
 
-  const speakText = (text: string) => {
-    Speech.speak(text, {
-      onDone() {
-        const isBackground =
-          appStateRef.current === 'background' ||
-          appStateRef.current === 'inactive';
+  useEffect(() => {
+    if (!TikTokTTS) {
+      return;
+    }
 
-        /*
+    const onStart = tiktokTTSEmitter.addListener('TikTokTTS_onStart', () => {
+      webViewRef.current?.injectJavaScript('tts.setLoading(true)');
+    });
+    const onDone = tiktokTTSEmitter.addListener('TikTokTTS_onDone', () => {
+      webViewRef.current?.injectJavaScript('tts.setLoading(false)');
+      const isBackground =
+        appStateRef.current === 'background' ||
+        appStateRef.current === 'inactive';
+
+      /*
         if (
           isBackground &&
           ttsQueueRef.current.length > 0 &&
@@ -402,6 +413,44 @@ const WebViewReader: React.FC<WebViewReaderProps> = ({ onPress }) => {
           return;
         }
         */
+
+      if (isBackground) {
+        return;
+      }
+
+      webViewRef.current?.injectJavaScript('tts.next?.()');
+    });
+    const onError = tiktokTTSEmitter.addListener('TikTokTTS_onError', err => {
+      webViewRef.current?.injectJavaScript('tts.setLoading(false)');
+      console.error('TikTokTTS Error:', err.message);
+    });
+
+    return () => {
+      onStart.remove();
+      onDone.remove();
+      onError.remove();
+    };
+  }, [webViewRef]);
+
+  const speakText = (text: string) => {
+    if (readerSettingsRef.current.tts?.engine === 'tiktok') {
+      const voice = readerSettingsRef.current.tts?.voice?.identifier;
+      if (!voice) {
+        // Voice must be selected for TikTok TTS
+        showToast('TikTok TTS: No voice selected');
+        return;
+      }
+      const queueSize = readerSettingsRef.current.tts?.queueSize || 3;
+      const rate = readerSettingsRef.current.tts?.rate || 1;
+      const pitch = readerSettingsRef.current.tts?.pitch || 1;
+      TikTokTTS.speak(text, voice, queueSize, rate, pitch);
+      return;
+    }
+    Speech.speak(text, {
+      onDone() {
+        const isBackground =
+          appStateRef.current === 'background' ||
+          appStateRef.current === 'inactive';
 
         if (isBackground) {
           return;
@@ -487,6 +536,15 @@ const WebViewReader: React.FC<WebViewReaderProps> = ({ onPress }) => {
             } else {
               ttsQueueIndexRef.current = 0;
             }
+            if (readerSettingsRef.current.tts?.engine === 'tiktok') {
+              const voice = readerSettingsRef.current.tts?.voice?.identifier;
+              if (voice) {
+                TikTokTTS?.updateQueue(
+                  queue.slice(ttsQueueIndexRef.current),
+                  voice,
+                );
+              }
+            }
             break;
           }
           case 'hide':
@@ -539,6 +597,15 @@ const WebViewReader: React.FC<WebViewReaderProps> = ({ onPress }) => {
               ) {
                 updateTTSProgress(event.index, event.total);
               }
+              if (readerSettingsRef.current.tts?.engine === 'tiktok') {
+                const voice = readerSettingsRef.current.tts?.voice?.identifier;
+                if (voice) {
+                  TikTokTTS?.updateQueue(
+                    ttsQueueRef.current.slice(ttsQueueIndexRef.current + 1),
+                    voice,
+                  );
+                }
+              }
               speakText(event.data);
             } else {
               webViewRef.current?.injectJavaScript('tts.next?.()');
@@ -546,9 +613,11 @@ const WebViewReader: React.FC<WebViewReaderProps> = ({ onPress }) => {
             break;
           case 'pause-speak':
             Speech.stop();
+            TikTokTTS?.pause();
             break;
           case 'stop-speak':
             Speech.stop();
+            TikTokTTS?.stop();
             if (!autoStartTTSRef.current) {
               isTTSReadingRef.current = false;
               ttsQueueRef.current = [];

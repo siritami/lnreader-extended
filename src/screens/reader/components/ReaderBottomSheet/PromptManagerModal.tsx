@@ -87,17 +87,21 @@ const PromptManagerModal: React.FC<PromptManagerModalProps> = ({
     onSelectPrompt(newId);
   };
 
+  if (!visible) {
+    return null;
+  }
+
   return (
     <Portal>
-      <KeyboardAwareScrollView>
-        <Modal
-          visible={visible}
-          onDismiss={onDismiss}
-          contentContainerStyle={[
-            styles.modalContent,
-            { backgroundColor: theme.surface },
-          ]}
-        >
+      <Modal
+        visible={visible}
+        onDismiss={onDismiss}
+        contentContainerStyle={[
+          styles.modalContent,
+          { backgroundColor: theme.surface },
+        ]}
+      >
+        <KeyboardAwareScrollView showsVerticalScrollIndicator={false}>
           <Text style={[styles.modalTitle, { color: theme.onSurface }]}>
             System Prompt Manager
           </Text>
@@ -236,8 +240,8 @@ const PromptManagerModal: React.FC<PromptManagerModalProps> = ({
               style={styles.flexBtn}
             />
           </View>
-        </Modal>
-      </KeyboardAwareScrollView>
+        </KeyboardAwareScrollView>
+      </Modal>
     </Portal>
   );
 };
