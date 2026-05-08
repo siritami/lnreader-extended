@@ -338,6 +338,9 @@ const WebViewReader: React.FC<WebViewReaderProps> = ({ onPress }) => {
             if (window.tts && window.tts.allReadableElements) {
               const idx = ${index};
               if (idx < tts.allReadableElements.length) {
+                if (tts.currentElement) {
+                  tts.currentElement.classList.remove('highlight');
+                }
                 tts.elementsRead = idx;
                 tts.currentElement = tts.allReadableElements[idx];
                 tts.prevElement = null;
@@ -352,6 +355,18 @@ const WebViewReader: React.FC<WebViewReaderProps> = ({ onPress }) => {
       } else {
         // Pause reading timer on background/inactive
         pauseReadTimer();
+
+        // Stop TTS on background to prevent sync issues
+        if (isTTSReadingRef.current) {
+          Speech.stop();
+          isTTSReadingRef.current = false;
+          ttsQueueRef.current = [];
+          ttsQueueIndexRef.current = 0;
+          dismissTTSNotification();
+          webViewRef.current?.injectJavaScript(`
+            if (window.tts) { tts.stop(); }
+          `);
+        }
       }
     });
 
@@ -365,6 +380,7 @@ const WebViewReader: React.FC<WebViewReaderProps> = ({ onPress }) => {
           appStateRef.current === 'background' ||
           appStateRef.current === 'inactive';
 
+        /*
         if (
           isBackground &&
           ttsQueueRef.current.length > 0 &&
@@ -383,6 +399,11 @@ const WebViewReader: React.FC<WebViewReaderProps> = ({ onPress }) => {
           isTTSReadingRef.current = false;
           dismissTTSNotification();
           webViewRef.current?.injectJavaScript('tts.stop?.()');
+          return;
+        }
+        */
+
+        if (isBackground) {
           return;
         }
 
