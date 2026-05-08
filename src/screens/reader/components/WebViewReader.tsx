@@ -45,6 +45,7 @@ import {
   ttsMediaEmitter,
 } from '@utils/ttsNotification';
 import { addReadDuration } from '@database/queries/ChapterQueries';
+import { showToast } from '@utils/showToast';
 
 type WebViewPostEvent = {
   type: string;
@@ -389,7 +390,7 @@ const WebViewReader: React.FC<WebViewReaderProps> = ({ onPress }) => {
         appStateRef.current === 'background' ||
         appStateRef.current === 'inactive';
 
-        /*
+      /*
         if (
           isBackground &&
           ttsQueueRef.current.length > 0 &&
@@ -435,7 +436,7 @@ const WebViewReader: React.FC<WebViewReaderProps> = ({ onPress }) => {
       const voice = readerSettingsRef.current.tts?.voice?.identifier;
       if (!voice) {
         // Voice must be selected for TikTok TTS
-        console.warn('TikTok TTS: No voice selected');
+        showToast('TikTok TTS: No voice selected');
         return;
       }
       const queueSize = readerSettingsRef.current.tts?.queueSize || 3;
@@ -537,7 +538,10 @@ const WebViewReader: React.FC<WebViewReaderProps> = ({ onPress }) => {
             if (readerSettingsRef.current.tts?.engine === 'tiktok') {
               const voice = readerSettingsRef.current.tts?.voice?.identifier;
               if (voice) {
-                TikTokTTS?.updateQueue(queue.slice(ttsQueueIndexRef.current), voice);
+                TikTokTTS?.updateQueue(
+                  queue.slice(ttsQueueIndexRef.current),
+                  voice,
+                );
               }
             }
             break;

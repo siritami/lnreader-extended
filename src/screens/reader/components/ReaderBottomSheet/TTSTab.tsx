@@ -23,14 +23,9 @@ interface VoicePickerModalProps {
   currentVoice?: Voice;
 }
 
-const VoicePickerModal: React.FC<VoicePickerModalProps & { isTikTok: boolean }> = ({
-  visible,
-  onDismiss,
-  voices,
-  onSelect,
-  currentVoice,
-  isTikTok,
-}) => {
+const VoicePickerModal: React.FC<
+  VoicePickerModalProps & { isTikTok: boolean }
+> = ({ visible, onDismiss, voices, onSelect, currentVoice, isTikTok }) => {
   const theme = useTheme();
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
   // Get system language safely using getLocales()
@@ -308,7 +303,9 @@ const TTSTab: React.FC = () => {
                     iconColor={theme.primary}
                     onPress={() => {
                       const newValue = Math.max(0.1, (tts?.rate || 1) - 0.1);
-                      setChapterReaderSettings({ tts: { ...tts, rate: newValue } });
+                      setChapterReaderSettings({
+                        tts: { ...tts, rate: newValue },
+                      });
                     }}
                   />
                   <Slider
@@ -330,7 +327,9 @@ const TTSTab: React.FC = () => {
                     iconColor={theme.primary}
                     onPress={() => {
                       const newValue = Math.min(5, (tts?.rate || 1) + 0.1);
-                      setChapterReaderSettings({ tts: { ...tts, rate: newValue } });
+                      setChapterReaderSettings({
+                        tts: { ...tts, rate: newValue },
+                      });
                     }}
                   />
                 </View>
@@ -347,7 +346,9 @@ const TTSTab: React.FC = () => {
                     iconColor={theme.primary}
                     onPress={() => {
                       const newValue = Math.max(0.1, (tts?.pitch || 1) - 0.1);
-                      setChapterReaderSettings({ tts: { ...tts, pitch: newValue } });
+                      setChapterReaderSettings({
+                        tts: { ...tts, pitch: newValue },
+                      });
                     }}
                   />
                   <Slider
@@ -360,7 +361,9 @@ const TTSTab: React.FC = () => {
                     maximumTrackTintColor={theme.surfaceVariant}
                     thumbTintColor={theme.primary}
                     onSlidingComplete={value =>
-                      setChapterReaderSettings({ tts: { ...tts, pitch: value } })
+                      setChapterReaderSettings({
+                        tts: { ...tts, pitch: value },
+                      })
                     }
                   />
                   <IconButton
@@ -369,7 +372,9 @@ const TTSTab: React.FC = () => {
                     iconColor={theme.primary}
                     onPress={() => {
                       const newValue = Math.min(5, (tts?.pitch || 1) + 0.1);
-                      setChapterReaderSettings({ tts: { ...tts, pitch: newValue } });
+                      setChapterReaderSettings({
+                        tts: { ...tts, pitch: newValue },
+                      });
                     }}
                   />
                 </View>
@@ -377,7 +382,9 @@ const TTSTab: React.FC = () => {
 
               {tts?.engine === 'tiktok' && (
                 <View style={styles.sliderSection}>
-                  <Text style={[styles.sliderLabel, { color: theme.onSurface }]}>
+                  <Text
+                    style={[styles.sliderLabel, { color: theme.onSurface }]}
+                  >
                     Queue Size: {tts?.queueSize || 3}
                   </Text>
                   <View style={styles.sliderControls}>
@@ -412,7 +419,10 @@ const TTSTab: React.FC = () => {
                       size={20}
                       iconColor={theme.primary}
                       onPress={() => {
-                        const newValue = Math.min(10, (tts?.queueSize || 3) + 1);
+                        const newValue = Math.min(
+                          10,
+                          (tts?.queueSize || 3) + 1,
+                        );
                         setChapterReaderSettings({
                           tts: { ...tts, queueSize: newValue },
                         });
