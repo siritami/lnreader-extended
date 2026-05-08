@@ -360,6 +360,7 @@ const WebViewReader: React.FC<WebViewReaderProps> = ({ onPress }) => {
         // Stop TTS on background to prevent sync issues
         if (isTTSReadingRef.current) {
           Speech.stop();
+          TikTokTTS?.stop();
           isTTSReadingRef.current = false;
           ttsQueueRef.current = [];
           ttsQueueIndexRef.current = 0;

@@ -130,6 +130,8 @@ class TikTokTTSModule(private val reactContext: ReactApplicationContext) :
         }
     }
 
+    private val retryMap = ConcurrentHashMap<String, Int>()
+
     private fun startWebSocket(text: String, voice: String, hash: String) {
         val url = "wss://sami-normal-sg.capcutapi.com/internal/api/v1/ws?device_id=7486429558272460289&iid=7486431924195657473&app_id=359289&region=VN&update_version_code=5.7.1.2101&version_code=5.7.1&appKey=ddjeqjLGMn&device_type=macos&device_platform=macos"
         
@@ -150,7 +152,15 @@ class TikTokTTSModule(private val reactContext: ReactApplicationContext) :
                     webSocket.close(1000, null)
                     return
                 }
-                pcmBuffer.addAll(bytes.toByteArray().toList())
+                val data = bytes.toByteArray()
+                try {
+                    val textStr = String(data)
+                    if (textStr.contains("\"event\"")) {
+                        onMessage(webSocket, textStr)
+                        return
+                    }
+                } catch (e: Exception) {}
+                pcmBuffer.addAll(data.toList())
             }
 
             override fun onMessage(webSocket: WebSocket, textMsg: String) {
@@ -163,12 +173,11 @@ class TikTokTTSModule(private val reactContext: ReactApplicationContext) :
                     if (json.has("event")) {
                         val event = json.getString("event")
                         if (event == "TaskFailed") {
-                            handleEnd(webSocket, hash, null)
-                            sendEvent("TikTokTTS_onError", Arguments.createMap().apply {
-                                putString("message", "TaskFailed")
-                            })
+                            val code = if (json.has("status_code")) json.getInt("status_code") else -1
+                            val msg = if (json.has("status_text")) json.getString("status_text") else "Unknown"
+                            handleFailure(webSocket, hash, "TaskFailed: $code - $msg")
                         } else if (event == "TaskEnd" || event == "TaskFinished") {
-                            handleEnd(webSocket, hash, pcmBuffer.toByteArray())
+                            handleSuccess(webSocket, hash, pcmBuffer.toByteArray())
                         }
                     }
                 } catch (e: Exception) {
@@ -177,28 +186,54 @@ class TikTokTTSModule(private val reactContext: ReactApplicationContext) :
             }
 
             override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
-                handleEnd(webSocket, hash, null)
+                handleFailure(webSocket, hash, t.message ?: "Connection Failure")
+            }
+
+            private fun handleSuccess(webSocket: WebSocket, hash: String, data: ByteArray) {
+                webSocket.close(1000, null)
+                currentlySynthesizing.remove(hash)
+                retryMap.remove(hash)
+                activeWebSockets--
+                bufferMap[hash] = data
                 if (waitingForHash == hash) {
-                    sendEvent("TikTokTTS_onError", Arguments.createMap().apply {
-                        putString("message", t.message)
-                    })
+                    waitingForHash = null
+                    playAudio(data)
+                }
+                processQueues()
+            }
+
+            private fun handleFailure(webSocket: WebSocket, hash: String, errorMsg: String) {
+                webSocket.close(1000, null)
+                val retries = retryMap[hash] ?: 0
+                if (retries < 3 && !isStopped) {
+                    retryMap[hash] = retries + 1
+                    // Retry after a short delay
+                    Timer().schedule(object : TimerTask() {
+                        override fun run() {
+                            if (!isStopped) {
+                                startWebSocket(text, voice, hash)
+                            } else {
+                                cleanup()
+                            }
+                        }
+                    }, 100)
+                } else {
+                    cleanup()
+                    if (waitingForHash == hash) {
+                        waitingForHash = null
+                        sendEvent("TikTokTTS_onError", Arguments.createMap().apply {
+                            putString("message", errorMsg)
+                        })
+                        // Skip to next
+                        sendEvent("TikTokTTS_onDone", null)
+                    }
                 }
             }
 
-            private fun handleEnd(webSocket: WebSocket, hash: String, data: ByteArray?) {
-                webSocket.close(1000, null)
+            private fun cleanup() {
                 currentlySynthesizing.remove(hash)
+                retryMap.remove(hash)
                 activeWebSockets--
-                if (data != null) {
-                    bufferMap[hash] = data
-                    if (waitingForHash == hash) {
-                        waitingForHash = null
-                        playAudio(data)
-                    }
-                } else if (waitingForHash == hash) {
-                    waitingForHash = null
-                    // Error already handled
-                }
                 processQueues()
             }
         })
