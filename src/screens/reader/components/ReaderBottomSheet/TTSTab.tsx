@@ -11,7 +11,7 @@ import {
 } from '@hooks/persisted';
 import { getString } from '@strings/translations';
 import { List, Button } from '@components/index';
-import { Portal, Modal, Chip } from 'react-native-paper';
+import { Portal, Modal, Chip, IconButton } from 'react-native-paper';
 import ReaderSheetPreferenceItem from './ReaderSheetPreferenceItem';
 import { TIKTOK_VOICES } from '../../../../../demo/voice';
 
@@ -301,38 +301,78 @@ const TTSTab: React.FC = () => {
                 <Text style={[styles.sliderLabel, { color: theme.onSurface }]}>
                   Speed: {tts?.rate?.toFixed(1) || '1.0'}x
                 </Text>
-                <Slider
-                  style={styles.slider}
-                  value={tts?.rate || 1}
-                  minimumValue={0.1}
-                  maximumValue={5}
-                  step={0.1}
-                  minimumTrackTintColor={theme.primary}
-                  maximumTrackTintColor={theme.surfaceVariant}
-                  thumbTintColor={theme.primary}
-                  onSlidingComplete={value =>
-                    setChapterReaderSettings({ tts: { ...tts, rate: value } })
-                  }
-                />
+                <View style={styles.sliderControls}>
+                  <IconButton
+                    icon="minus"
+                    size={20}
+                    iconColor={theme.primary}
+                    onPress={() => {
+                      const newValue = Math.max(0.1, (tts?.rate || 1) - 0.1);
+                      setChapterReaderSettings({ tts: { ...tts, rate: newValue } });
+                    }}
+                  />
+                  <Slider
+                    style={styles.sliderContainer}
+                    value={tts?.rate || 1}
+                    minimumValue={0.1}
+                    maximumValue={5}
+                    step={0.1}
+                    minimumTrackTintColor={theme.primary}
+                    maximumTrackTintColor={theme.surfaceVariant}
+                    thumbTintColor={theme.primary}
+                    onSlidingComplete={value =>
+                      setChapterReaderSettings({ tts: { ...tts, rate: value } })
+                    }
+                  />
+                  <IconButton
+                    icon="plus"
+                    size={20}
+                    iconColor={theme.primary}
+                    onPress={() => {
+                      const newValue = Math.min(5, (tts?.rate || 1) + 0.1);
+                      setChapterReaderSettings({ tts: { ...tts, rate: newValue } });
+                    }}
+                  />
+                </View>
               </View>
 
               <View style={styles.sliderSection}>
                 <Text style={[styles.sliderLabel, { color: theme.onSurface }]}>
                   Pitch: {tts?.pitch?.toFixed(1) || '1.0'}
                 </Text>
-                <Slider
-                  style={styles.slider}
-                  value={tts?.pitch || 1}
-                  minimumValue={0.1}
-                  maximumValue={5}
-                  step={0.1}
-                  minimumTrackTintColor={theme.primary}
-                  maximumTrackTintColor={theme.surfaceVariant}
-                  thumbTintColor={theme.primary}
-                  onSlidingComplete={value =>
-                    setChapterReaderSettings({ tts: { ...tts, pitch: value } })
-                  }
-                />
+                <View style={styles.sliderControls}>
+                  <IconButton
+                    icon="minus"
+                    size={20}
+                    iconColor={theme.primary}
+                    onPress={() => {
+                      const newValue = Math.max(0.1, (tts?.pitch || 1) - 0.1);
+                      setChapterReaderSettings({ tts: { ...tts, pitch: newValue } });
+                    }}
+                  />
+                  <Slider
+                    style={styles.sliderContainer}
+                    value={tts?.pitch || 1}
+                    minimumValue={0.1}
+                    maximumValue={5}
+                    step={0.1}
+                    minimumTrackTintColor={theme.primary}
+                    maximumTrackTintColor={theme.surfaceVariant}
+                    thumbTintColor={theme.primary}
+                    onSlidingComplete={value =>
+                      setChapterReaderSettings({ tts: { ...tts, pitch: value } })
+                    }
+                  />
+                  <IconButton
+                    icon="plus"
+                    size={20}
+                    iconColor={theme.primary}
+                    onPress={() => {
+                      const newValue = Math.min(5, (tts?.pitch || 1) + 0.1);
+                      setChapterReaderSettings({ tts: { ...tts, pitch: newValue } });
+                    }}
+                  />
+                </View>
               </View>
 
               {tts?.engine === 'tiktok' && (
@@ -340,21 +380,45 @@ const TTSTab: React.FC = () => {
                   <Text style={[styles.sliderLabel, { color: theme.onSurface }]}>
                     Queue Size: {tts?.queueSize || 3}
                   </Text>
-                  <Slider
-                    style={styles.slider}
-                    value={tts?.queueSize || 3}
-                    minimumValue={1}
-                    maximumValue={10}
-                    step={1}
-                    minimumTrackTintColor={theme.primary}
-                    maximumTrackTintColor={theme.surfaceVariant}
-                    thumbTintColor={theme.primary}
-                    onSlidingComplete={value =>
-                      setChapterReaderSettings({
-                        tts: { ...tts, queueSize: value },
-                      })
-                    }
-                  />
+                  <View style={styles.sliderControls}>
+                    <IconButton
+                      icon="minus"
+                      size={20}
+                      iconColor={theme.primary}
+                      onPress={() => {
+                        const newValue = Math.max(1, (tts?.queueSize || 3) - 1);
+                        setChapterReaderSettings({
+                          tts: { ...tts, queueSize: newValue },
+                        });
+                      }}
+                    />
+                    <Slider
+                      style={styles.sliderContainer}
+                      value={tts?.queueSize || 3}
+                      minimumValue={1}
+                      maximumValue={10}
+                      step={1}
+                      minimumTrackTintColor={theme.primary}
+                      maximumTrackTintColor={theme.surfaceVariant}
+                      thumbTintColor={theme.primary}
+                      onSlidingComplete={value =>
+                        setChapterReaderSettings({
+                          tts: { ...tts, queueSize: value },
+                        })
+                      }
+                    />
+                    <IconButton
+                      icon="plus"
+                      size={20}
+                      iconColor={theme.primary}
+                      onPress={() => {
+                        const newValue = Math.min(10, (tts?.queueSize || 3) + 1);
+                        setChapterReaderSettings({
+                          tts: { ...tts, queueSize: newValue },
+                        });
+                      }}
+                    />
+                  </View>
                 </View>
               )}
 
@@ -454,6 +518,15 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   slider: {
+    height: 40,
+  },
+  sliderControls: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+  },
+  sliderContainer: {
+    flex: 1,
     height: 40,
   },
   resetButtonContainer: {
