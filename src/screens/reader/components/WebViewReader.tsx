@@ -50,17 +50,36 @@ import { load as cheerioLoad } from 'cheerio';
 
 function parseChapterTextForTTS(chapterHtml: string): string[] {
   const $ = cheerioLoad(chapterHtml, null, false);
+
+  // Replace <br> with newline markers so .text() splits on them
+  $('br').replaceWith('\n');
+
   const results: string[] = [];
   // Same selectors as WebView JS tts.readableSelector
-  $('p, li, h1, h2, h3, h4, h5, h6, blockquote, td, th, dt, dd, figcaption, caption, pre').each(
-    (_, el) => {
-      const text = $(el).text().trim();
-      if (text.length > 0) {
-        results.push(text);
+  const blockSelector =
+    'p, li, h1, h2, h3, h4, h5, h6, blockquote, td, th, dt, dd, figcaption, caption, pre';
+  $(blockSelector).each((_, el) => {
+    const lines = $(el).text().split('\n');
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (trimmed.length > 0) {
+        results.push(trimmed);
       }
-    },
-  );
-  return results;
+    }
+  });
+
+  // If block elements found enough content, use them
+  if (results.length > 1) {
+    return results;
+  }
+
+  // Fallback: content may be in plain <div> with <br> separators
+  const allText = $.root().text();
+  const lines = allText
+    .split('\n')
+    .map(s => s.trim())
+    .filter(s => s.length > 0);
+  return lines.length > results.length ? lines : results;
 }
 
 type WebViewPostEvent = {
