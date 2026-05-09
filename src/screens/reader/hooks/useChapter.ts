@@ -312,17 +312,6 @@ export default function useChapter(
           } catch {}
         }
 
-        if (nextChap && !chapterTextCache.get(nextChap.id)) {
-          const prefetchPromise = loadChapterText(nextChap.id, nextChap.path);
-          prefetchPromise.catch(() => {
-            chapterTextCache.delete(nextChap!.id);
-          });
-          chapterTextCache.set(nextChap.id, prefetchPromise);
-        }
-        if (!cachedText) {
-          chapterTextCache.set(chap.id, text);
-        }
-
         // Cancel foreground translation from previous chapter
         currentTranslateAbort.current?.abort();
         currentTranslateAbort.current = null;
@@ -333,6 +322,23 @@ export default function useChapter(
         const loadedCheerio = load(awaitedText);
         const isOffline =
           loadedCheerio('meta[id="offline-translated-marker"]').length > 0;
+        const noCache = loadedCheerio('meta[id="no-cache-marker"]').length > 0;
+        const noPrefetch =
+          loadedCheerio('meta[id="no-prefetch-marker"]').length > 0;
+
+        if (!noPrefetch && nextChap && !chapterTextCache.has(nextChap.id)) {
+          const prefetchPromise = loadChapterText(nextChap.id, nextChap.path);
+          prefetchPromise.catch(() => {
+            chapterTextCache.delete(nextChap!.id);
+          });
+          chapterTextCache.set(nextChap.id, prefetchPromise);
+        }
+
+        if (noCache) {
+          chapterTextCache.delete(chap.id);
+        } else if (!cachedText) {
+          chapterTextCache.set(chap.id, text);
+        }
 
         if (isOffline) {
           showToast(getString('readerScreen.usingOfflineTranslation'));
@@ -377,7 +383,7 @@ export default function useChapter(
             translatedChapterCache.current.delete(chap.id);
 
             // If there's a next chapter and autoTranslate is on, pre-translate it
-            if (nextChap) {
+            if (!noPrefetch && nextChap) {
               const nextRawText =
                 chapterTextCache.get(nextChap.id) ??
                 loadChapterText(nextChap.id, nextChap.path);
@@ -423,7 +429,7 @@ export default function useChapter(
                 setTranslateProgress(100);
 
                 // Pre-translate the next chapter after background completes
-                if (nextChap) {
+                if (!noPrefetch && nextChap) {
                   const nextRawText =
                     chapterTextCache.get(nextChap.id) ??
                     loadChapterText(nextChap.id, nextChap.path);
@@ -713,16 +719,21 @@ export default function useChapter(
 
         // If autoTranslateNextChapter is on, pre-translate the next chapter
         if (settings.autoTranslateNextChapter && nextChapter) {
-          const nextRawText =
-            chapterTextCache.get(nextChapter.id) ??
-            loadChapterText(nextChapter.id, nextChapter.path);
-          Promise.resolve(nextRawText)
-            .then(resolvedText => {
-              if (chapterIdRef.current === translatingChapterId) {
-                startBackgroundTranslate(nextChapter, resolvedText);
-              }
-            })
-            .catch(() => {});
+          const loadedCheerio = load(originalChapterText.current);
+          const noPrefetch =
+            loadedCheerio('meta[id="no-prefetch-marker"]').length > 0;
+          if (!noPrefetch) {
+            const nextRawText =
+              chapterTextCache.get(nextChapter.id) ??
+              loadChapterText(nextChapter.id, nextChapter.path);
+            Promise.resolve(nextRawText)
+              .then(resolvedText => {
+                if (chapterIdRef.current === translatingChapterId) {
+                  startBackgroundTranslate(nextChapter, resolvedText);
+                }
+              })
+              .catch(() => {});
+          }
         }
       }
     } catch (e: any) {
