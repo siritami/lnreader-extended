@@ -150,6 +150,7 @@ const WebViewReader: React.FC<WebViewReaderProps> = ({ onPress }) => {
   const ttsQueueIndexRef = useRef<number>(0);
   const navigateChapterRef = useRef(navigateChapter);
   const nextChapterRef = useRef(nextChapter);
+  const nativeTTSModeRef = useRef(false);
 
   // --- Reading time tracking ---
   const readStartTimeRef = useRef<number | null>(null);
@@ -225,8 +226,8 @@ const WebViewReader: React.FC<WebViewReaderProps> = ({ onPress }) => {
           appStateRef.current === 'background' ||
           appStateRef.current === 'inactive';
 
-        if (isBackground) {
-          // Advance queue directly from JS refs (WebView JS may be suspended)
+        if (isBackground || nativeTTSModeRef.current) {
+          // Advance queue directly from JS refs
           if (
             ttsQueueRef.current.length > 0 &&
             ttsQueueIndexRef.current + 1 < ttsQueueRef.current.length
@@ -247,6 +248,7 @@ const WebViewReader: React.FC<WebViewReaderProps> = ({ onPress }) => {
             autoStartTTSRef.current = true;
             navigateChapterRef.current('NEXT');
           } else {
+            nativeTTSModeRef.current = false;
             isTTSReadingRef.current = false;
             dismissTTSNotification();
           }
@@ -279,6 +281,7 @@ const WebViewReader: React.FC<WebViewReaderProps> = ({ onPress }) => {
       ttsQueueRef.current = queue;
       ttsQueueIndexRef.current = 0;
       isTTSReadingRef.current = true;
+      nativeTTSModeRef.current = true;
       updateTTSNotification({
         novelName: novel?.name || 'Unknown',
         chapterName: chapter.name,
@@ -496,8 +499,8 @@ const WebViewReader: React.FC<WebViewReaderProps> = ({ onPress }) => {
         appStateRef.current === 'background' ||
         appStateRef.current === 'inactive';
 
-      if (isBackground) {
-        // Advance queue directly from JS refs (WebView JS may be suspended)
+      if (isBackground || nativeTTSModeRef.current) {
+        // Advance queue directly from JS refs
         if (
           ttsQueueRef.current.length > 0 &&
           ttsQueueIndexRef.current + 1 < ttsQueueRef.current.length
@@ -518,6 +521,7 @@ const WebViewReader: React.FC<WebViewReaderProps> = ({ onPress }) => {
           autoStartTTSRef.current = true;
           navigateChapterRef.current('NEXT');
         } else {
+          nativeTTSModeRef.current = false;
           isTTSReadingRef.current = false;
           dismissTTSNotification();
         }
@@ -596,6 +600,7 @@ const WebViewReader: React.FC<WebViewReaderProps> = ({ onPress }) => {
             resetAutoScroll();
             break;
           case 'tts-queue': {
+            nativeTTSModeRef.current = false;
             const payload = event.data as
               | { queue?: unknown; startIndex?: unknown }
               | undefined;
@@ -694,6 +699,7 @@ const WebViewReader: React.FC<WebViewReaderProps> = ({ onPress }) => {
             Speech.stop();
             TikTokTTS?.stop();
             if (!autoStartTTSRef.current) {
+              nativeTTSModeRef.current = false;
               isTTSReadingRef.current = false;
               ttsQueueRef.current = [];
               ttsQueueIndexRef.current = 0;
