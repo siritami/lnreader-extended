@@ -323,7 +323,8 @@ export default function useChapter(
         const isOffline =
           loadedCheerio('meta[id="offline-translated-marker"]').length > 0;
         const noCache = loadedCheerio('meta[id="no-cache-marker"]').length > 0;
-        const noPrefetch = loadedCheerio('meta[id="no-prefetch-marker"]').length > 0;
+        const noPrefetch =
+          loadedCheerio('meta[id="no-prefetch-marker"]').length > 0;
 
         if (!noPrefetch && nextChap && !chapterTextCache.has(nextChap.id)) {
           const prefetchPromise = loadChapterText(nextChap.id, nextChap.path);
@@ -719,7 +720,8 @@ export default function useChapter(
         // If autoTranslateNextChapter is on, pre-translate the next chapter
         if (settings.autoTranslateNextChapter && nextChapter) {
           const loadedCheerio = load(originalChapterText.current);
-          const noPrefetch = loadedCheerio('meta[id="no-prefetch-marker"]').length > 0;
+          const noPrefetch =
+            loadedCheerio('meta[id="no-prefetch-marker"]').length > 0;
           if (!noPrefetch) {
             const nextRawText =
               chapterTextCache.get(nextChapter.id) ??
