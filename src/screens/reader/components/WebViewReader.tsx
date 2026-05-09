@@ -205,6 +205,39 @@ const WebViewReader: React.FC<WebViewReaderProps> = ({ onPress }) => {
     }
   }, [chapter.id, saveReadTime, startReadTimer]);
 
+  // Auto-start TTS on chapter change when in background
+  // (onLoadEnd + WebView JS won't execute when app is backgrounded)
+  useEffect(() => {
+    if (!autoStartTTSRef.current) {
+      return;
+    }
+    const isBackground =
+      appStateRef.current === 'background' ||
+      appStateRef.current === 'inactive';
+    if (!isBackground) {
+      return; // foreground: onLoadEnd will handle it via WebView JS
+    }
+    autoStartTTSRef.current = false;
+    const queue = parseChapterTextForTTS(html);
+    if (queue.length > 0) {
+      ttsQueueRef.current = queue;
+      ttsQueueIndexRef.current = 0;
+      isTTSReadingRef.current = true;
+      updateTTSNotification({
+        novelName: novel?.name || 'Unknown',
+        chapterName: chapter.name,
+        coverUri: novel?.cover || '',
+        isPlaying: true,
+      });
+      updateTTSProgress(0, queue.length);
+      speakText(queue[0]);
+    } else {
+      isTTSReadingRef.current = false;
+      dismissTTSNotification();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chapter.id]);
+
   useEffect(() => {
     readerSettingsRef.current = readerSettings;
   }, [readerSettings]);
@@ -532,46 +565,21 @@ const WebViewReader: React.FC<WebViewReaderProps> = ({ onPress }) => {
 
         if (autoStartTTSRef.current) {
           autoStartTTSRef.current = false;
-          const isBackground =
-            appStateRef.current === 'background' ||
-            appStateRef.current === 'inactive';
-
-          if (isBackground) {
-            // WebView JS won't execute in background — parse HTML and speak directly
-            const queue = parseChapterTextForTTS(html);
-            if (queue.length > 0) {
-              ttsQueueRef.current = queue;
-              ttsQueueIndexRef.current = 0;
-              isTTSReadingRef.current = true;
-              updateTTSNotification({
-                novelName: novel?.name || 'Unknown',
-                chapterName: chapter.name,
-                coverUri: novel?.cover || '',
-                isPlaying: true,
-              });
-              updateTTSProgress(0, queue.length);
-              speakText(queue[0]);
-            } else {
-              isTTSReadingRef.current = false;
-              dismissTTSNotification();
-            }
-          } else {
-            setTimeout(() => {
-              webViewRef.current?.injectJavaScript(`
-                (function() {
-                  if (window.tts && reader.generalSettings.val.TTSEnable) {
-                    setTimeout(() => {
-                      tts.start();
-                      const controller = document.getElementById('TTS-Controller');
-                      if (controller && controller.firstElementChild) {
-                        controller.firstElementChild.innerHTML = pauseIcon;
-                      }
-                    }, 500);
-                  }
-                })();
-              `);
-            }, 300);
-          }
+          setTimeout(() => {
+            webViewRef.current?.injectJavaScript(`
+              (function() {
+                if (window.tts && reader.generalSettings.val.TTSEnable) {
+                  setTimeout(() => {
+                    tts.start();
+                    const controller = document.getElementById('TTS-Controller');
+                    if (controller && controller.firstElementChild) {
+                      controller.firstElementChild.innerHTML = pauseIcon;
+                    }
+                  }, 500);
+                }
+              })();
+            `);
+          }, 300);
         }
       }}
       onMessage={(ev: { nativeEvent: { data: string } }) => {
