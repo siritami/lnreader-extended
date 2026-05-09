@@ -132,6 +132,8 @@ const WebViewReader: React.FC<WebViewReaderProps> = ({ onPress }) => {
   const appStateRef = useRef(AppState.currentState);
   const ttsQueueRef = useRef<string[]>([]);
   const ttsQueueIndexRef = useRef<number>(0);
+  const navigateChapterRef = useRef(navigateChapter);
+  const nextChapterRef = useRef(nextChapter);
 
   // --- Reading time tracking ---
   const readStartTimeRef = useRef<number | null>(null);
@@ -190,6 +192,14 @@ const WebViewReader: React.FC<WebViewReaderProps> = ({ onPress }) => {
   useEffect(() => {
     readerSettingsRef.current = readerSettings;
   }, [readerSettings]);
+
+  useEffect(() => {
+    navigateChapterRef.current = navigateChapter;
+  }, [navigateChapter]);
+
+  useEffect(() => {
+    nextChapterRef.current = nextChapter;
+  }, [nextChapter]);
 
   useEffect(() => {
     const playListener = ttsMediaEmitter.addListener('TTSPlay', () => {
@@ -397,9 +407,16 @@ const WebViewReader: React.FC<WebViewReaderProps> = ({ onPress }) => {
             return;
           }
         }
-        // No more sentences in queue — stop
-        isTTSReadingRef.current = false;
-        dismissTTSNotification();
+        // No more sentences — auto-advance to next chapter if available
+        const autoAdvance =
+          readerSettingsRef.current.tts?.autoPageAdvance === true;
+        if (autoAdvance && nextChapterRef.current) {
+          autoStartTTSRef.current = true;
+          navigateChapterRef.current('NEXT');
+        } else {
+          isTTSReadingRef.current = false;
+          dismissTTSNotification();
+        }
         return;
       }
 
@@ -452,9 +469,16 @@ const WebViewReader: React.FC<WebViewReaderProps> = ({ onPress }) => {
               return;
             }
           }
-          // No more sentences — stop
-          isTTSReadingRef.current = false;
-          dismissTTSNotification();
+          // No more sentences — auto-advance to next chapter if available
+          const autoAdvance =
+            readerSettingsRef.current.tts?.autoPageAdvance === true;
+          if (autoAdvance && nextChapterRef.current) {
+            autoStartTTSRef.current = true;
+            navigateChapterRef.current('NEXT');
+          } else {
+            isTTSReadingRef.current = false;
+            dismissTTSNotification();
+          }
           return;
         }
 
