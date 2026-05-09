@@ -219,7 +219,15 @@ const WebViewReader: React.FC<WebViewReaderProps> = ({ onPress }) => {
     }
     autoStartTTSRef.current = false;
     const queue = parseChapterTextForTTS(html);
+    // DEBUG: remove these toasts after fixing
+    showToast(
+      `BG TTS: queue=${queue.length}, html=${html.length}chars, ch=${chapter.name}`,
+    );
     if (queue.length > 0) {
+      showToast(`q[0]=${queue[0].substring(0, 40)}...`);
+      if (queue.length > 1) {
+        showToast(`q[1]=${queue[1].substring(0, 40)}...`);
+      }
       ttsQueueRef.current = queue;
       ttsQueueIndexRef.current = 0;
       isTTSReadingRef.current = true;
@@ -232,6 +240,7 @@ const WebViewReader: React.FC<WebViewReaderProps> = ({ onPress }) => {
       updateTTSProgress(0, queue.length);
       speakText(queue[0]);
     } else {
+      showToast('BG TTS: empty queue, stopping');
       isTTSReadingRef.current = false;
       dismissTTSNotification();
     }
