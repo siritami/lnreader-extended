@@ -52,14 +52,13 @@ const AboutScreen = ({ navigation }: AboutScreenProps) => {
           release.body.split('\n').join('\n\n'),
           [
             { text: getString('common.cancel'), style: 'cancel' },
-            ...(release.downloadUrl
-              ? [
-                  {
-                    text: getString('common.install'),
-                    onPress: () => Linking.openURL(release.downloadUrl),
-                  },
-                ]
-              : []),
+            {
+              text: getString('common.install'),
+              onPress: () =>
+                Linking.openURL(
+                  'https://github.com/Yuneko-dev/lnreader-extended/releases',
+                ),
+            },
           ],
         );
       } else {
