@@ -325,7 +325,7 @@ export default function useChapter(
         const noCache = loadedCheerio('meta[id="no-cache-marker"]').length > 0;
         const noPrefetch = loadedCheerio('meta[id="no-prefetch-marker"]').length > 0;
 
-        if (!noPrefetch && nextChap && !chapterTextCache.get(nextChap.id)) {
+        if (!noPrefetch && nextChap && !chapterTextCache.has(nextChap.id)) {
           const prefetchPromise = loadChapterText(nextChap.id, nextChap.path);
           prefetchPromise.catch(() => {
             chapterTextCache.delete(nextChap!.id);
