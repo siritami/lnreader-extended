@@ -142,7 +142,7 @@ const WebViewReader: React.FC<WebViewReaderProps> = ({ onPress }) => {
   const pluginCustomJS = `file://${PLUGIN_STORAGE}/${plugin?.id}/custom.js`;
   const pluginCustomCSS = `file://${PLUGIN_STORAGE}/${plugin?.id}/custom.css`;
   const nextChapterScreenVisible = useRef<boolean>(false);
-  const autoStartTTSRef = useRef<boolean>(false);
+  const autoStartTTSRef = useRef<number | null>(null);
   const isTTSReadingRef = useRef<boolean>(false);
   const readerSettingsRef = useRef<ChapterReaderSettings>(readerSettings);
   const appStateRef = useRef(AppState.currentState);
@@ -245,7 +245,7 @@ const WebViewReader: React.FC<WebViewReaderProps> = ({ onPress }) => {
           const autoAdvance =
             readerSettingsRef.current.tts?.autoPageAdvance === true;
           if (autoAdvance && nextChapterRef.current) {
-            autoStartTTSRef.current = true;
+            autoStartTTSRef.current = nextChapterRef.current.id;
             navigateChapterRef.current('NEXT');
           } else {
             nativeTTSModeRef.current = false;
@@ -266,10 +266,14 @@ const WebViewReader: React.FC<WebViewReaderProps> = ({ onPress }) => {
   // Auto-start TTS on chapter change when in background
   // (onLoadEnd + WebView JS won't execute when app is backgrounded)
   useEffect(() => {
-    if (!autoStartTTSRef.current) {
+    if (autoStartTTSRef.current == null) {
       return;
     }
-    // Wait for real chapter content (avoid parsing stale/empty html)
+    // Wait until the target chapter has actually loaded
+    if (autoStartTTSRef.current !== chapter.id) {
+      return;
+    }
+    // Wait for real chapter content
     if (!html || html.length < 100) {
       return;
     }
@@ -279,7 +283,7 @@ const WebViewReader: React.FC<WebViewReaderProps> = ({ onPress }) => {
     if (!isBackground) {
       return; // foreground: onLoadEnd will handle it via WebView JS
     }
-    autoStartTTSRef.current = false;
+    autoStartTTSRef.current = null;
     const queue = parseChapterTextForTTS(html);
     if (queue.length > 0) {
       ttsQueueRef.current = queue;
@@ -523,7 +527,7 @@ const WebViewReader: React.FC<WebViewReaderProps> = ({ onPress }) => {
         const autoAdvance =
           readerSettingsRef.current.tts?.autoPageAdvance === true;
         if (autoAdvance && nextChapterRef.current) {
-          autoStartTTSRef.current = true;
+          autoStartTTSRef.current = nextChapterRef.current.id;
           navigateChapterRef.current('NEXT');
         } else {
           nativeTTSModeRef.current = false;
@@ -572,8 +576,8 @@ const WebViewReader: React.FC<WebViewReaderProps> = ({ onPress }) => {
           }`,
         );
 
-        if (autoStartTTSRef.current) {
-          autoStartTTSRef.current = false;
+        if (autoStartTTSRef.current != null) {
+          autoStartTTSRef.current = null;
           setTimeout(() => {
             webViewRef.current?.injectJavaScript(`
               (function() {
@@ -638,13 +642,13 @@ const WebViewReader: React.FC<WebViewReaderProps> = ({ onPress }) => {
           case 'next':
             nextChapterScreenVisible.current = true;
             if (event.autoStartTTS) {
-              autoStartTTSRef.current = true;
+              autoStartTTSRef.current = nextChapter?.id ?? -1;
             }
             navigateChapter('NEXT');
             break;
           case 'prev':
             if (event.autoStartTTS) {
-              autoStartTTSRef.current = true;
+              autoStartTTSRef.current = prevChapter?.id ?? -1;
             }
             navigateChapter('PREV');
             break;
@@ -703,7 +707,7 @@ const WebViewReader: React.FC<WebViewReaderProps> = ({ onPress }) => {
           case 'stop-speak':
             Speech.stop();
             TikTokTTS?.stop();
-            if (!autoStartTTSRef.current) {
+            if (autoStartTTSRef.current == null) {
               nativeTTSModeRef.current = false;
               isTTSReadingRef.current = false;
               ttsQueueRef.current = [];
