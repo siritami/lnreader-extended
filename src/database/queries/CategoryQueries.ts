@@ -161,7 +161,8 @@ export const updateCategory = async (
     await tx
       .update(categorySchema)
       .set({ name: categoryName })
-      .where(eq(categorySchema.id, categoryId));
+      .where(eq(categorySchema.id, categoryId))
+      .run();
   });
 };
 
@@ -191,7 +192,8 @@ export const updateCategoryOrderInDb = async (
 
   await dbManager.write(async tx => {
     for (const category of categories) {
-      tx.update(categorySchema)
+      await tx
+        .update(categorySchema)
         .set({ sort: category.sort })
         .where(eq(categorySchema.id, category.id))
         .run();

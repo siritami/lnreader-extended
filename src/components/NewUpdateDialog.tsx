@@ -43,7 +43,11 @@ const NewUpdateDialog: React.FC<NewUpdateDialogProps> = ({ newVersion }) => {
           />
           <Button
             title={getString('common.install')}
-            onPress={() => Linking.openURL(newVersion.downloadUrl)}
+            onPress={() =>
+              Linking.openURL(
+                'https://github.com/Yuneko-dev/lnreader-extended/releases',
+              )
+            }
           />
         </View>
       </Modal>
