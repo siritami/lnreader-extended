@@ -655,7 +655,8 @@
     "debugSection": "Gỡ lỗi",
     "noLogs": "Chưa có nhật ký. Hãy bắt đầu sao lưu hoặc khôi phục.",
     "cancelBackup": "Hủy sao lưu",
-    "backupCancelled": "Đã hủy sao lưu"
+    "backupCancelled": "Đã hủy sao lưu",
+    "incompleteBackupCancelled": "Tiến trình sao lưu / khôi phục dở dang đã tự động bị hủy."
   },
   "tracking": "Theo dõi",
   "trackingScreen": {

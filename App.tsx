@@ -27,6 +27,8 @@ import NativeFile from '@specs/NativeFile';
 import { initLocalServer } from '@plugins/local/localServerManager';
 import FileViewer from 'react-native-file-viewer';
 import { showToast } from '@utils/showToast';
+import ServiceManager from '@services/ServiceManager';
+import { getString } from '@strings/translations';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => {
@@ -99,11 +101,38 @@ const useClearCacheOnExit = () => {
   }, [clearCacheOnExit]);
 };
 
+/**
+ * Cancel stuck backup tasks from previous sessions
+ */
+const useCancelStuckBackupTasks = () => {
+  useEffect(() => {
+    const taskList = ServiceManager.manager.getTaskList();
+    const backupTasks = [
+      'LOCAL_BACKUP',
+      'DRIVE_BACKUP',
+      'SELF_HOST_BACKUP',
+      'LOCAL_RESTORE',
+      'DRIVE_RESTORE',
+      'SELF_HOST_RESTORE',
+    ];
+
+    const hasStuckBackupTasks = taskList.some(
+      t => t?.task?.name && backupTasks.includes(t.task.name)
+    );
+
+    if (hasStuckBackupTasks) {
+      backupTasks.forEach(name => ServiceManager.manager.removeTasksByName(name as any));
+      showToast(getString('backupLogScreen.incompleteBackupCancelled'));
+    }
+  }, []);
+};
+
 const AppContent = () => {
   const { isLocked, isCredentialsRevoked, authenticate, dismissRevoked } =
     useAppLock();
   useScreenProtection();
   useClearCacheOnExit();
+  useCancelStuckBackupTasks();
 
   useEffect(() => {
     const subscription = Notifications.addNotificationResponseReceivedListener(
