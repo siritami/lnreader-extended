@@ -554,6 +554,7 @@ export interface StringMap {
   'backupLogScreen.noLogs': 'string';
   'backupLogScreen.cancelBackup': 'string';
   'backupLogScreen.backupCancelled': 'string';
+  'backupLogScreen.incompleteBackupCancelled': 'string';
   'tracking': 'string';
   'trackingScreen.logOutMessage': 'string';
   'trackingScreen.revalidate': 'string';

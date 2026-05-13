@@ -656,7 +656,8 @@
     "debugSection": "Debug",
     "noLogs": "No backup logs yet. Start a backup or restore operation.",
     "cancelBackup": "Cancel Backup",
-    "backupCancelled": "Backup cancelled"
+    "backupCancelled": "Backup cancelled",
+    "incompleteBackupCancelled": "Incomplete backup/restore task was automatically cancelled."
   },
   "tracking": "Tracking",
   "trackingScreen": {
