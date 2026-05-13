@@ -12,6 +12,7 @@ import { useTheme } from '@hooks/persisted';
 
 import { History, NovelInfo } from '@database/types';
 import { HistoryScreenProps } from '@navigators/types';
+import { LOCAL_PLUGIN_ID } from '@plugins/pluginManager';
 
 import { coverPlaceholderColor } from '@theme/colors';
 
@@ -36,9 +37,11 @@ const HistoryCard: React.FC<HistoryCardProps> = ({
           screen: 'Chapter',
           params: {
             novel: {
+              id: history.novelId,
               path: history.novelPath,
               name: history.novelName,
               pluginId: history.pluginId,
+              isLocal: history.pluginId === LOCAL_PLUGIN_ID,
             } as NovelInfo,
             chapter: history,
           },

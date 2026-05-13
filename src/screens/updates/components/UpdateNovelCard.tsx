@@ -15,6 +15,7 @@ import { useDownload, useTheme, useUpdates } from '@hooks/persisted';
 import { RootStackParamList } from '@navigators/types';
 import { FlatList } from 'react-native-gesture-handler';
 import { defaultCover } from '@plugins/helpers/constants';
+import { LOCAL_PLUGIN_ID } from '@plugins/pluginManager';
 import { ThemeColors } from '@theme/types';
 
 type UpdateCardProps = {
@@ -110,9 +111,11 @@ const UpdateNovelCard: React.FC<UpdateCardProps> = ({
         screen: 'Chapter',
         params: {
           novel: {
+            id: (chapter as Update | DownloadedChapter).novelId,
             path: novelPath,
             pluginId: pluginId,
             name: novelName,
+            isLocal: pluginId === LOCAL_PLUGIN_ID,
           } as NovelInfo,
           chapter: chapter,
         },

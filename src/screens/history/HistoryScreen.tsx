@@ -21,6 +21,7 @@ import { getString } from '@strings/translations';
 import ClearHistoryDialog from './components/ClearHistoryDialog';
 import HistorySkeletonLoading from './components/HistorySkeletonLoading';
 import { HistoryScreenProps } from '@navigators/types';
+import { LOCAL_PLUGIN_ID } from '@plugins/pluginManager';
 
 const HistoryScreen = ({ navigation }: HistoryScreenProps) => {
   const theme = useTheme();
@@ -91,6 +92,7 @@ const HistoryScreen = ({ navigation }: HistoryScreenProps) => {
               path: lastNovel.novelPath,
               cover: lastNovel.novelCover,
               pluginId: lastNovel.pluginId,
+              isLocal: lastNovel.pluginId === LOCAL_PLUGIN_ID,
             },
           });
         }

@@ -46,6 +46,7 @@ import { LibraryScreenProps } from '@navigators/types';
 import { NovelInfo } from '@database/types';
 import * as DocumentPicker from 'expo-document-picker';
 import ServiceManager from '@services/ServiceManager';
+import { LOCAL_PLUGIN_ID } from '@plugins/pluginManager';
 import useImport from '@hooks/persisted/useImport';
 import { ThemeColors } from '@theme/types';
 import { useLibraryContext } from '@components/Context/LibraryContext';
@@ -414,9 +415,11 @@ const LibraryScreen = ({ navigation }: LibraryScreenProps) => {
         screen: 'Chapter',
         params: {
           novel: {
+            id: history[0].novelId,
             path: history[0].novelPath,
             pluginId: history[0].pluginId,
             name: history[0].novelName,
+            isLocal: history[0].pluginId === LOCAL_PLUGIN_ID,
           } as NovelInfo,
           chapter: history[0],
         },
