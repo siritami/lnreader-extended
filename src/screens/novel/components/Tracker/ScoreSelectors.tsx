@@ -87,7 +87,6 @@ export const MangaUpdatesScoreSelector: React.FC<ScoreSelectorProps> = ({
       </Text>
       <TextInput
         defaultValue={scoreText}
-        key={trackItem.score}
         onChangeText={handleChangeText}
         mode="outlined"
         keyboardType="decimal-pad"

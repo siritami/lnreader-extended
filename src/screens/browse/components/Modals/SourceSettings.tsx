@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View, ActivityIndicator } from 'react-native';
 import { TextInput, overlay } from 'react-native-paper';
 import { Button, Modal, SwitchItem, Checkbox, Menu } from '@components/index';
 import { useTheme } from '@hooks/persisted';
@@ -32,12 +32,14 @@ const SourceSettingsModal: React.FC<SourceSettingsModal> = ({
     Record<string, string | boolean | string[]>
   >({});
   const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({});
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (pluginSettings) {
       const storage = new Storage(pluginId);
 
       const loadFormValues = async () => {
+        setIsLoading(true);
         const loadedValues = await Promise.all(
           Object.keys(pluginSettings).map(async key => {
             const storedValue = await storage.get(key);
@@ -54,9 +56,12 @@ const SourceSettingsModal: React.FC<SourceSettingsModal> = ({
         );
 
         setFormValues(initialFormValues);
+        setIsLoading(false);
       };
 
       loadFormValues();
+    } else {
+      setIsLoading(false);
     }
   }, [pluginSettings, pluginId]);
 
@@ -79,6 +84,14 @@ const SourceSettingsModal: React.FC<SourceSettingsModal> = ({
     });
     onDismiss();
   };
+
+  if (isLoading) {
+    return (
+      <Modal visible={visible} onDismiss={onDismiss}>
+        <ActivityIndicator size={40} style={{ margin: 24 }} color={theme.primary} />
+      </Modal>
+    );
+  }
 
   if (!pluginSettings || Object.keys(pluginSettings).length === 0) {
     return (

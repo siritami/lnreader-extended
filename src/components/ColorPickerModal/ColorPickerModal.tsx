@@ -81,7 +81,7 @@ const ColorPickerModal: React.FC<ColorPickerModalProps> = ({
   return (
     <Portal>
       <Modal visible={visible} onDismiss={onDismiss}>
-        <KeyboardAwareScrollView>
+        <KeyboardAwareScrollView key={visible ? 'visible' : 'hidden'}>
           <Text style={[styles.modalTitle, { color: theme.onSurface }]}>
             {title}
           </Text>
@@ -108,7 +108,7 @@ const ColorPickerModal: React.FC<ColorPickerModalProps> = ({
             />
           ) : null}
           <TextInput
-            defaultValue={typeof color === 'string' ? color : ''}
+            defaultValue={text}
             placeholder="Hex Color Code (E.g. #3399FF)"
             onChangeText={onChangeText}
             onSubmitEditing={onSubmitEditing}
