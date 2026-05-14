@@ -86,7 +86,8 @@ export const MangaUpdatesScoreSelector: React.FC<ScoreSelectorProps> = ({
         Enter a score between 0 and 10 (decimals allowed, e.g., 7.5)
       </Text>
       <TextInput
-        value={scoreText}
+        defaultValue={scoreText}
+        key={trackItem.score}
         onChangeText={handleChangeText}
         mode="outlined"
         keyboardType="decimal-pad"

@@ -95,7 +95,7 @@ const SourceSettingsModal: React.FC<SourceSettingsModal> = ({
 
   return (
     <Modal visible={visible} onDismiss={onDismiss}>
-      <KeyboardAwareScrollView>
+      <KeyboardAwareScrollView key={visible ? 'visible' : 'hidden'}>
         <Text style={[styles.modalTitle, { color: theme.onSurface }]}>
           {title}
         </Text>
@@ -217,7 +217,7 @@ const SourceSettingsModal: React.FC<SourceSettingsModal> = ({
               key={key}
               mode="outlined"
               label={setting.label}
-              value={(formValues[key] ?? '') as string}
+              defaultValue={(formValues[key] ?? '') as string}
               onChangeText={value => handleChange(key, value)}
               placeholder={`Enter ${setting.label}`}
               placeholderTextColor={theme.onSurfaceDisabled}
