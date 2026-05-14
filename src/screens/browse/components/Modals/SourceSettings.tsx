@@ -1,5 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Pressable, StyleSheet, Text, View, ActivityIndicator } from 'react-native';
+import {
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+  ActivityIndicator,
+} from 'react-native';
 import { TextInput, overlay } from 'react-native-paper';
 import { Button, Modal, SwitchItem, Checkbox, Menu } from '@components/index';
 import { useTheme } from '@hooks/persisted';
@@ -88,7 +94,11 @@ const SourceSettingsModal: React.FC<SourceSettingsModal> = ({
   if (isLoading) {
     return (
       <Modal visible={visible} onDismiss={onDismiss}>
-        <ActivityIndicator size={40} style={{ margin: 24 }} color={theme.primary} />
+        <ActivityIndicator
+          size={40}
+          style={{ margin: 24 }}
+          color={theme.primary}
+        />
       </Modal>
     );
   }
