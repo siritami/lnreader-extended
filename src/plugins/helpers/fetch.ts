@@ -2,7 +2,6 @@
 import { getUserAgent } from '@hooks/persisted/useUserAgent';
 import NativeFile from '@specs/NativeFile';
 import { parse as parseProto } from 'protobufjs';
-import CookieManager from '@preeternal/react-native-cookie-manager';
 
 type FetchInit = {
   headers?: Record<string, string> | Headers;
@@ -40,41 +39,6 @@ const makeInit = (init?: FetchInit) => {
   }
   return init;
 };
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-/**
-async function applyCookieFromRequest(url: string, init: FetchInit) {
-  const baseURL = new URL(url).origin;
-  let cookieString = '';
-  if (init.headers instanceof Headers) {
-    cookieString = init.headers.get('Cookie') || '';
-  } else if (init.headers) {
-    const cookieKey = Object.keys(init.headers).find(
-      k => k.toLowerCase() === 'cookie',
-    );
-    if (cookieKey) {
-      cookieString = init.headers[cookieKey];
-    }
-  }
-  console.log(`[${baseURL}]#headers[cookie]=`, cookieString);
-  if (cookieString) {
-    const cookiePairs = cookieString.split(';');
-    for (const pair of cookiePairs) {
-      const [name, ...valueParts] = pair.split('=');
-      if (name) {
-        const cookieName = name.trim();
-        const cookieValue = valueParts.join('=').trim();
-        await CookieManager.set(baseURL, {
-          name: cookieName,
-          value: cookieValue,
-          path: '/',
-        });
-      }
-    }
-  }
-  console.log(`[${baseURL}]#CookieManager`, await CookieManager.get(baseURL));
-}
-*/
 
 export const fetchApi = async (
   url: string,
