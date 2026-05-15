@@ -85,20 +85,26 @@ const BottomNavigator = () => {
     [theme, showLabelsInNav, renderIcon],
   );
 
+  const tabBarBadgeStyle = useMemo(
+    () => ({
+      backgroundColor: theme.error,
+      color: theme.onError,
+    }),
+    [theme.error, theme.onError],
+  );
+  const screenOptions = useMemo(
+    () => ({
+      headerShown: false as const,
+      animation: 'shift' as const,
+      lazy: true,
+      freezeOnBlur: true,
+      tabBarBadgeStyle,
+    }),
+    [tabBarBadgeStyle],
+  );
+
   return (
-    <Tab.Navigator
-      screenOptions={() => ({
-        headerShown: false,
-        animation: 'shift',
-        lazy: true,
-        freezeOnBlur: true,
-        tabBarBadgeStyle: {
-          backgroundColor: theme.error,
-          color: theme.onError,
-        },
-      })}
-      tabBar={renderTabBar}
-    >
+    <Tab.Navigator screenOptions={screenOptions} tabBar={renderTabBar}>
       <Tab.Screen
         name="Library"
         component={Library}
