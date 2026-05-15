@@ -20,8 +20,8 @@ import {
   encode as encodeHtmlEntities,
   decode as decodeHtmlEntities,
 } from 'html-entities';
-import { Buffer } from 'buffer';
 import CookieManager from '@preeternal/react-native-cookie-manager';
+import NodeCrypto from 'react-native-quick-crypto';
 
 import { getRepositoriesFromDb } from '@database/queries/RepositoryQueries';
 import { getUserAgent } from '@hooks/persisted/useUserAgent';
@@ -61,9 +61,10 @@ const packages: Record<string, any> = {
   '@libs/utils': {
     utf8ToBytes,
     bytesToUtf8,
-    Buffer,
+    Buffer: NodeCrypto.Buffer,
     encodeHtmlEntities,
     decodeHtmlEntities,
+    NodeCrypto, 
   },
   '@libs/cookie': {
     set: CookieManager.set,

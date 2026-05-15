@@ -6,7 +6,6 @@ if (appSettings?.verboseLogging) {
   DebugLogService.install();
 }
 
-import 'react-native-get-random-values';
 import 'react-native-gesture-handler';
 import { registerRootComponent } from 'expo';
 import { I18nManager } from 'react-native';
